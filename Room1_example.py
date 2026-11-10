@@ -115,7 +115,7 @@ class Room:
 
 
         #special case the table
-        if target == "table":
+        if target == "table" || target == "desk" :
             print("There is a word scratched into the surface of the table. It says: 'excelcior' ")
             return
     
@@ -213,7 +213,7 @@ class Room:
         print("Available commands: move, go, look, get, take, drop, inventory, stats, quit, help")
 
     def show_hint(self):
-        print("The desk looks interesting.")
+        print("The table looks interesting.")
 
     def unknown_command(self):
         print("You can't do that here. Try something else or type 'help' for options or 'hint' for a clue.")
