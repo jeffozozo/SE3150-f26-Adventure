@@ -39,7 +39,7 @@ Room:3:jeff
 + **stats** - prints out the PLAYERs statistics
 + **help,?** - prints out the list of commands
 + **hint** - prints out a room-specific hint that will help the player get through the puzzle in the room
-+ **quit** - asks "Are you sure? (y/n) and if y prints out the player stats and ends the game.
++ **quit** - asks "Are you sure? (y/n)". If the player confirms with `y`, print the player's stats and return the string `"quit"` from the room's `enter(player)` method. Adventure.py will then exit the program. If the player does not confirm, continue accepting commands in the room.
 
 15. Rooms can also support any custom commands that will support solving the puzzle. For example, a room could have a fountain in it, and the PLAYER could say "drink fountain" and the room would respond with a result. If the puzzle is hard, giving a hint is a good idea to keep the players from rage quitting.
 16. **OBJECTS** - PLAYERS have an inventory and rooms have a list of Objects. Rooms must support dropping items so they MUST support an object list in some way. It doesn't matter what the room's object list is called, only that when a player drops something it goes out of the inventory and into the room's object list. If the player wants to get the object again, they should be able to do so, unless it is part of the puzzle of the room. You could also make it so that the object would get destroyed if they did something crazy with it. Like there could be a pit in the room and the PLAYER could say "throw lamp in pit" and the result could be that the lamp is now gone.
@@ -47,7 +47,8 @@ Room:3:jeff
     + You create an object by subclassing Object and implementing the use function.
     + The lamp in Room0 is the example of how to implement an object. Take a look at the lamp defined in Room0.
 17. The students should try to write the room descriptions so that they indicate the exits available in the room so that the game is playable. However, if you want to implement a secret exit, pick one of your exits and make sure it isn't obvious. Require the player to 'search' or something and then reveal the exit by changing the description of the room on the fly. You have a TON of flexibility of what you can do in your room.
-18.  When the room is complete the **room should return the direction that the PLAYER has chosen or that is the result of the solution to the puzzle.** For example if the PLAYER chooses "north" and that is a valid direction, the program should end and return "north". The room MUST ONLY return directions that were part of it's assignment in the map.txt file. 
+18.  At the beginning of the room's **`enter(player)` method**, update `player.current_room` to your assigned room number. For example, if `self.room_num` holds your assigned room number, use `player.current_room = self.room_num`. This is the room's responsibility; Adventure.py does not update it. Verify the value by entering the room and using the `stats` command.
+19.  When the player leaves the room, the **room's `enter(player)` method should return the direction that the PLAYER has chosen or that is the result of the solution to the puzzle.** For example, if the PLAYER chooses "north" and that is a valid direction, the method should return `"north"`. Return only directions assigned to the room in map.txt. (Except for the special string `"quit"` when the player confirms quitting...)
 
 This repo has the following files:
 + map.txt - the map file
@@ -62,7 +63,7 @@ This repo has the following files:
 
 Adventure.py is the engine - it runs the rooms and orchestrates the action. You should not make changes to Adventure.py - this will be the way the class runs the whole game. It is here for your reference. If you find bugs in it or wish to make material changes, discuss these with the instructor.
 
-Once all of the rooms have been created, when they are placed in the same directory as Adventure.py, you just run Adventure.py and the rooms will load and you can play. The rooms have to correctly return the exits they are supposed to return as describe in map.txt or the game will crash. Here are some other considerations:
+Once all of the rooms have been created, when they are placed in the same directory as Adventure.py, you just run Adventure.py and the rooms will load and you can play. Rooms must return an exit direction assigned in map.txt, or `"quit"` after the player confirms quitting. Here are some other considerations:
 
 + Look at the definition of Objects in object.py. You can use the attributes of the object to do things like make objects that are too big to get or that are attached to something. You can have puzzles that change those settings and then they can allow changes in the way that the players interact with the objects.
 + Objects will travel with the player from room to room in the player's inventory. You should coordinate with other Room Authors to get an object in some room, and then use it in another.

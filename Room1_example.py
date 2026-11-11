@@ -9,7 +9,7 @@ class Room:
     objects = []
 
     def __init__(self):
-        self.room_num = 0
+        self.room_num = 1
         self.description = ("The room is pitch dark.\n")
                 
         #this is how you declare your exits. It doesn't matter what room they attach to, I'll worry about that in the global level. 
@@ -18,6 +18,7 @@ class Room:
 
     # this gets called when the player enters the room.
     def enter(self, player):
+        player.current_room = self.room_num
 
         # step 0 - any fancy setup - this room is dark unless you have a lamp and it is on.
 
@@ -115,7 +116,7 @@ class Room:
 
 
         #special case the table
-        if target == "table" || target == "desk" :
+        if target == "table" or target == "desk" :
             print("There is a word scratched into the surface of the table. It says: 'excelcior' ")
             return
     
@@ -205,8 +206,8 @@ class Room:
         player.print_stats()
 
     def quit_game(self, player):
-        if input("Are you sure you want to quit? (yes/no) ").lower().startswith('y'):
-            print(f"Final Score: {player.score}")
+        if input("Are you sure? (y/n) ").lower().startswith('y'):
+            player.print_stats()
             return "quit"
 
     def show_help(self):

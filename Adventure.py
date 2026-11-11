@@ -123,6 +123,10 @@ def main():
 
         #go to the next room which results in giving us the subsequent room
         next_direction = rooms[current_room].enter(player)
+
+        #if the users asks to quit in a room, that will get handled in the room. exit.
+        if next_direction == "quit":
+            sys.exit(0)
         
         # Check if the next direction is valid for the current room
         if next_direction not in game_map[current_room]:

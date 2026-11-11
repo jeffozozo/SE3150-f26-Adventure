@@ -44,6 +44,7 @@ class Room:
 
 
     def enter(self, player):
+        player.current_room = self.room_num
 
         # step 1 - Print the room description
         self.describe_room()
@@ -193,8 +194,8 @@ class Room:
         player.print_stats()
 
     def quit_game(self, player):
-        if input("Are you sure you want to quit? (yes/no) ").lower().startswith('y'):
-            print(f"Final Score: {player.score}")
+        if input("Are you sure? (y/n) ").lower().startswith('y'):
+            player.print_stats()
             return "quit"
 
     def show_help(self):

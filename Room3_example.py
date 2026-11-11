@@ -6,6 +6,7 @@ class Room:
         self.objects = []
 
     def enter(self, player):
+        player.current_room = self.room_num
         self.describe_room()
         while True:
             parts = input("> ").lower().split(maxsplit=1)
@@ -35,7 +36,7 @@ class Room:
             elif command == "quit":
                 if input("Are you sure? (y/n) ").lower().startswith("y"):
                     player.print_stats()
-                    raise SystemExit
+                    return "quit"
             else:
                 print("Command unavailable.")
 
