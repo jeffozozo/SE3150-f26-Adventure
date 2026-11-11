@@ -4,7 +4,6 @@ Room:0:jeff
 Room:1:kenneth_branch
  north,13
  east,14
- up,0
  down,2
 
 Room:2:eric_cook
