@@ -5,7 +5,7 @@ class Room:
     objects = []
 
     def __init__(self):
-        self.room_num = 4
+        self.room_num = 15
         self.description = "A dusty library. Bookshelves line the walls, and a heavy wooden chest sits in the center. There is a door to the west."
         self.exits = ["west"]
 
