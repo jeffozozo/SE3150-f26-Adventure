@@ -1,6 +1,6 @@
 class Room:
     def __init__(self):
-        self.room_num = 3
+        self.room_num = 4
         self.description = "Room 4."
         self.exits = ['up', 'down']
         self.objects = []
