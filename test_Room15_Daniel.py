@@ -13,7 +13,7 @@ def describe_Room15_Daniel():
         
         def it_has_correct_room_number():
             room = Room()
-            assert room.room_num == 4
+            assert room.room_num == 15
             
         def it_has_correct_exits():
             room = Room()
