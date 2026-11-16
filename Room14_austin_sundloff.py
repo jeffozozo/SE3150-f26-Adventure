@@ -16,7 +16,7 @@ class Room:
         "Don't lean over the ledge like that, you might fall in.",
         "It's a hole, it can't be that interesting. Trust me, I'm trying to find a way to make it sound cooler, but it's just a hole.",
         "...",
-        "..."
+        "...",
         "Last chance...",
         "Alright fine. WOWIE ZOWIE! You found the super secret bonus room easter egg where you jump in the hole, find out that it does in fact have a bottom and you break every bone in your body and die instantly. NICE!!!"
     ]
