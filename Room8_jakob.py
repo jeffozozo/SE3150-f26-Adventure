@@ -1,8 +1,8 @@
 class Room:
     def __init__(self):
-        self.room_num = 2
-        self.description = "Room 2."
-        self.exits = ['west', 'up']
+        self.room_num = 8
+        self.description = "Room 8."
+        self.exits = ['east', 'up']
         self.objects = []
 
     def enter(self, player):
@@ -45,7 +45,7 @@ class Room:
         print("Exits: " + ", ".join(self.exits))
 
     def move(self, direction):
-        direction = {"w": "west", "u": "up", "d": "down"}.get(direction, direction)
+        direction = {"e": "east", "u": "up"}.get(direction, direction)
         if direction in self.exits:
             return direction
         print("You can't go that way.")
