@@ -1,8 +1,8 @@
 class Room:
     def __init__(self):
-        self.room_num = 2
-        self.description = "Room 2."
-        self.exits = ['west', 'up']
+        self.room_num = 3
+        self.description = "Room 4."
+        self.exits = ['up', 'down']
         self.objects = []
 
     def enter(self, player):
