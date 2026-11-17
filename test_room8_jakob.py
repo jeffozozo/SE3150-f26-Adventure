@@ -1,3 +1,4 @@
+from player import Player
 from Room8_jakob import Room
 
 
@@ -55,3 +56,18 @@ def test_looking_at_ashes_reveals_a_hidden_ember():
     assert ember.visible is False
     assert "ember" in room.look("Ancient Ashes").lower()
     assert ember.visible
+
+
+def test_player_can_take_the_ember_after_finding_it():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    ember = room.objects[5]
+
+    room.get("Ancient Ember", player)
+    assert not player.has_item("Ancient Ember")
+
+    room.look("Ancient Ashes")
+    room.get("Ancient Ember", player)
+
+    assert player.has_item("Ancient Ember")
+    assert ember not in room.objects

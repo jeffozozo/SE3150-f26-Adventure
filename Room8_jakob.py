@@ -76,6 +76,8 @@ class Room:
                     self.describe_room()
                 else:
                     print(self.look(target))
+            elif command in ["get", "take"]:
+                print(self.get(target, player))
             elif command == "inventory":
                 player.show_inventory()
             elif command == "stats":
@@ -110,6 +112,18 @@ class Room:
             if obj.name.lower() == target.lower():
                 return obj.description
         return "There is nothing like " + target + " to look at."
+
+    def get(self, item_name, player):
+        for obj in self.objects:
+            if obj.name.lower() == item_name.lower():
+                if not obj.visible:
+                    return item_name + " is not here."
+                if not obj.can_be_gotten:
+                    return "The " + obj.name + " cannot be taken."
+                player.inventory.append(obj)
+                self.objects.remove(obj)
+                return "You take the " + obj.name + "."
+        return item_name + " is not here."
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)
