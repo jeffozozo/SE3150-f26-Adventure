@@ -84,3 +84,12 @@ def test_player_can_drop_the_ember_back_in_the_room():
 
     assert not player.has_item("Ancient Ember")
     assert ember in room.objects
+
+
+def test_using_the_bonfire_lights_it():
+    room = Room()
+    bonfire = room.objects[0]
+
+    bonfire.use()
+
+    assert bonfire.state == "lit"

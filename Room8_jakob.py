@@ -1,6 +1,12 @@
 from object import Object
 
 
+class Bonfire(Object):
+    def use(self):
+        self.state = "lit"
+        self.description = "A steady bonfire burns brightly among the ashes."
+
+
 class Room:
     def __init__(self):
         self.room_num = 8
@@ -13,7 +19,7 @@ class Room:
         )
         self.exits = ['east', 'up']
         self.objects = [
-            Object(
+            Bonfire(
                 "Dying Bonfire",
                 "A small flame struggles to burn among the ashes.",
                 False,
