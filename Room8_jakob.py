@@ -1,7 +1,13 @@
 class Room:
     def __init__(self):
         self.room_num = 8
-        self.description = "Room 8."
+        self.description = (
+            "You enter the Forgotten Shrine, a quiet stone chamber hidden beneath "
+            "the ruins of a kingdom.\n"
+            "A dying bonfire glows among the ashes, its warmth barely reaching "
+            "the cold walls.\n"
+            "A passage leads east, while a worn stairway climbs up into darkness."
+        )
         self.exits = ['east', 'up']
         self.objects = []
 
