@@ -27,6 +27,8 @@ def test_room_has_a_sword_with_an_engraved_symbol():
 
     assert room.objects[2].name == "Broken Knight's Sword"
     assert "symbol" in room.objects[2].description.lower()
+    assert "flame symbol" in room.objects[1].description.lower()
+    assert "flame symbol" in room.objects[2].description.lower()
 
 
 def test_looking_at_tombstone_returns_its_clue():

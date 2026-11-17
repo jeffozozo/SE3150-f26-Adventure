@@ -28,14 +28,15 @@ class Room:
             ),
             Object(
                 "Weathered Tombstone",
-                "Its inscription reads: 'A hidden ember may wake the flame.'",
+                "Its inscription reads: 'Where the knight's flame symbol rests, "
+                "a hidden ember waits to wake the fire.'",
                 False,
                 None,
                 True,
             ),
             Object(
                 "Broken Knight's Sword",
-                "A faded symbol is engraved near the broken blade.",
+                "A faded flame symbol is engraved near the broken blade.",
                 False,
                 "broken",
                 True,
