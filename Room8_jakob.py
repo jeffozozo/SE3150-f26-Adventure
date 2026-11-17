@@ -86,6 +86,8 @@ class Room:
                 print(self.get(target, player))
             elif command in ["drop", "put"]:
                 print(self.drop(target, player))
+            elif command == "use":
+                print(self.use(target, player))
             elif command == "inventory":
                 player.show_inventory()
             elif command == "stats":
@@ -140,6 +142,30 @@ class Room:
                 self.objects.append(obj)
                 return "You drop the " + obj.name + "."
         return "You don't have the " + item_name + "."
+
+    def use(self, target, player):
+        parts = target.lower().split(" on ", 1)
+        item_name = parts[0].strip()
+
+        if item_name not in ["ember", "ancient ember"]:
+            return "You can't use that here."
+        if len(parts) == 2 and parts[1].strip() not in [
+            "bonfire",
+            "dying bonfire",
+            "the bonfire",
+            "the dying bonfire",
+        ]:
+            return "That cannot be used there."
+
+        ember = player.get_item("Ancient Ember")
+        if ember is None:
+            return "You need an ember to light the bonfire."
+        if self.objects[0].state == "lit":
+            return "The bonfire is already lit."
+
+        self.objects[0].use()
+        player.inventory.remove(ember)
+        return "The ember catches. The bonfire is lit."
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)

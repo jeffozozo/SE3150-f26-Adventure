@@ -93,3 +93,24 @@ def test_using_the_bonfire_lights_it():
     bonfire.use()
 
     assert bonfire.state == "lit"
+
+
+def test_using_ember_lights_bonfire_and_consumes_ember():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    room.look("Ancient Ashes")
+    room.get("Ancient Ember", player)
+    room.use("ember on bonfire", player)
+
+    assert room.objects[0].state == "lit"
+    assert not player.has_item("Ancient Ember")
+
+
+def test_bonfire_stays_unlit_without_an_ember():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    room.use("ember on bonfire", player)
+
+    assert room.objects[0].state == "dying"
