@@ -78,6 +78,8 @@ class Room:
                     print(self.look(target))
             elif command in ["get", "take"]:
                 print(self.get(target, player))
+            elif command in ["drop", "put"]:
+                print(self.drop(target, player))
             elif command == "inventory":
                 player.show_inventory()
             elif command == "stats":
@@ -124,6 +126,14 @@ class Room:
                 self.objects.remove(obj)
                 return "You take the " + obj.name + "."
         return item_name + " is not here."
+
+    def drop(self, item_name, player):
+        for obj in player.inventory:
+            if obj.name.lower() == item_name.lower():
+                player.inventory.remove(obj)
+                self.objects.append(obj)
+                return "You drop the " + obj.name + "."
+        return "You don't have the " + item_name + "."
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)

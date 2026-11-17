@@ -71,3 +71,16 @@ def test_player_can_take_the_ember_after_finding_it():
 
     assert player.has_item("Ancient Ember")
     assert ember not in room.objects
+
+
+def test_player_can_drop_the_ember_back_in_the_room():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    ember = room.objects[5]
+
+    room.look("Ancient Ashes")
+    room.get("Ancient Ember", player)
+    room.drop("Ancient Ember", player)
+
+    assert not player.has_item("Ancient Ember")
+    assert ember in room.objects
