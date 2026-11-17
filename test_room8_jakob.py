@@ -187,3 +187,19 @@ def test_confirmed_quit_returns_quit():
         next_direction = room.enter(player)
 
     assert next_direction == "quit"
+
+
+def test_declining_quit_keeps_playing():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch("builtins.input", side_effect=["quit", "no", "go east"]):
+        next_direction = room.enter(player)
+
+    assert next_direction == "east"
+
+
+def test_player_cannot_move_north():
+    room = Room()
+
+    assert room.move("north") is None
