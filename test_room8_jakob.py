@@ -19,3 +19,10 @@ def test_room_has_a_tombstone_with_a_bonfire_clue():
 
     assert room.objects[1].name == "Weathered Tombstone"
     assert "ember" in room.objects[1].description.lower()
+
+
+def test_room_has_a_sword_with_an_engraved_symbol():
+    room = Room()
+
+    assert room.objects[2].name == "Broken Knight's Sword"
+    assert "symbol" in room.objects[2].description.lower()

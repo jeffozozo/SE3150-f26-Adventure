@@ -27,6 +27,13 @@ class Room:
                 None,
                 True,
             ),
+            Object(
+                "Broken Knight's Sword",
+                "A faded symbol is engraved near the broken blade.",
+                False,
+                "broken",
+                True,
+            ),
         ]
 
     def enter(self, player):
