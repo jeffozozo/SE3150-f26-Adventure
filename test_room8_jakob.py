@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from player import Player
 from Room8_jakob import Room
 
@@ -164,3 +166,24 @@ def test_looking_at_lit_bonfire_shows_its_state():
     room.objects[0].use()
 
     assert "lit" in room.look("Dying Bonfire", player).lower()
+
+
+def test_enter_sets_room_number_and_returns_selected_exit():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 0)
+
+    with patch("builtins.input", return_value="go east"):
+        next_direction = room.enter(player)
+
+    assert player.current_room == 8
+    assert next_direction == "east"
+
+
+def test_confirmed_quit_returns_quit():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch("builtins.input", side_effect=["quit", "yes"]):
+        next_direction = room.enter(player)
+
+    assert next_direction == "quit"
