@@ -96,7 +96,7 @@ class Room:
                 print("Commands: go, move, look, inventory, stats, help, hint, quit")
                 print("Exits: " + ", ".join(self.exits))
             elif command == "hint":
-                print("Exits: " + ", ".join(self.exits))
+                print(self.hint())
             elif command == "quit":
                 if input("Are you sure? (y/n) ").lower().startswith("y"):
                     player.print_stats()
@@ -169,6 +169,9 @@ class Room:
         self.objects[0].use()
         player.inventory.remove(ember)
         return "The ember catches. The bonfire is lit."
+
+    def hint(self):
+        return "The tombstone mentions an ember. Search the ashes, then use it on the bonfire."
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)

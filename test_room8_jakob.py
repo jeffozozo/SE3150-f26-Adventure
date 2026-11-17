@@ -126,3 +126,12 @@ def test_player_can_look_at_an_item_in_inventory():
     room.get("Ancient Ember", player)
 
     assert "small ember" in room.look("Ancient Ember", player)
+
+
+def test_hint_points_to_the_tombstone_and_ember():
+    room = Room()
+
+    hint = room.hint().lower()
+
+    assert "tombstone" in hint
+    assert "ember" in hint
