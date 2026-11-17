@@ -81,7 +81,7 @@ class Room:
                 if not target:
                     self.describe_room()
                 else:
-                    print(self.look(target))
+                    print(self.look(target, player))
             elif command in ["get", "take"]:
                 print(self.get(target, player))
             elif command in ["drop", "put"]:
@@ -111,7 +111,7 @@ class Room:
                 print(f"There is a {obj.name} here.")
         print("Exits: " + ", ".join(self.exits))
 
-    def look(self, target):
+    def look(self, target, player):
         if target.lower() == "ancient ashes":
             for obj in self.objects:
                 if obj.name == "Ancient Ember":
@@ -119,6 +119,9 @@ class Room:
                     return "You find a hidden ember in the ashes."
 
         for obj in self.objects:
+            if obj.name.lower() == target.lower() and obj.visible:
+                return obj.description
+        for obj in player.inventory:
             if obj.name.lower() == target.lower():
                 return obj.description
         return "There is nothing like " + target + " to look at."

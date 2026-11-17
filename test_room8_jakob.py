@@ -31,8 +31,9 @@ def test_room_has_a_sword_with_an_engraved_symbol():
 
 def test_looking_at_tombstone_returns_its_clue():
     room = Room()
+    player = Player("Tester", 100, "healthy", 8)
 
-    assert "hidden ember" in room.look("Weathered Tombstone")
+    assert "hidden ember" in room.look("Weathered Tombstone", player)
 
 
 def test_room_has_rusty_armor_with_a_story():
@@ -51,10 +52,11 @@ def test_room_has_ancient_ashes_by_the_bonfire():
 
 def test_looking_at_ashes_reveals_a_hidden_ember():
     room = Room()
+    player = Player("Tester", 100, "healthy", 8)
     ember = room.objects[5]
 
     assert ember.visible is False
-    assert "ember" in room.look("Ancient Ashes").lower()
+    assert "ember" in room.look("Ancient Ashes", player).lower()
     assert ember.visible
 
 
@@ -66,7 +68,7 @@ def test_player_can_take_the_ember_after_finding_it():
     room.get("Ancient Ember", player)
     assert not player.has_item("Ancient Ember")
 
-    room.look("Ancient Ashes")
+    room.look("Ancient Ashes", player)
     room.get("Ancient Ember", player)
 
     assert player.has_item("Ancient Ember")
@@ -78,7 +80,7 @@ def test_player_can_drop_the_ember_back_in_the_room():
     player = Player("Tester", 100, "healthy", 8)
     ember = room.objects[5]
 
-    room.look("Ancient Ashes")
+    room.look("Ancient Ashes", player)
     room.get("Ancient Ember", player)
     room.drop("Ancient Ember", player)
 
@@ -99,7 +101,7 @@ def test_using_ember_lights_bonfire_and_consumes_ember():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
 
-    room.look("Ancient Ashes")
+    room.look("Ancient Ashes", player)
     room.get("Ancient Ember", player)
     room.use("ember on bonfire", player)
 
@@ -114,3 +116,13 @@ def test_bonfire_stays_unlit_without_an_ember():
     room.use("ember on bonfire", player)
 
     assert room.objects[0].state == "dying"
+
+
+def test_player_can_look_at_an_item_in_inventory():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    room.look("Ancient Ashes", player)
+    room.get("Ancient Ember", player)
+
+    assert "small ember" in room.look("Ancient Ember", player)
