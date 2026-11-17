@@ -93,8 +93,7 @@ class Room:
             elif command == "stats":
                 player.print_stats()
             elif command in ["help", "?"]:
-                print("Commands: go, move, look, inventory, stats, help, hint, quit")
-                print("Exits: " + ", ".join(self.exits))
+                print(self.help_text())
             elif command == "hint":
                 print(self.hint())
             elif command == "quit":
@@ -172,6 +171,13 @@ class Room:
 
     def hint(self):
         return "The tombstone mentions an ember. Search the ashes, then use it on the bonfire."
+
+    def help_text(self):
+        return (
+            "Commands: go, move, look, get, take, drop, put, use, inventory, "
+            "stats, help, ?, hint, quit\n"
+            "Exits: " + ", ".join(self.exits)
+        )
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)

@@ -135,3 +135,14 @@ def test_hint_points_to_the_tombstone_and_ember():
 
     assert "tombstone" in hint
     assert "ember" in hint
+
+
+def test_help_lists_the_room_commands():
+    room = Room()
+
+    help_text = room.help_text()
+
+    assert "get" in help_text
+    assert "take" in help_text
+    assert "drop" in help_text
+    assert "use" in help_text
