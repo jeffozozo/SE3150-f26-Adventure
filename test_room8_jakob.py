@@ -148,3 +148,11 @@ def test_help_lists_the_room_commands():
     assert "take" in help_text
     assert "drop" in help_text
     assert "use" in help_text
+
+
+def test_player_can_leave_without_lighting_the_bonfire():
+    room = Room()
+
+    assert room.objects[0].state == "dying"
+    assert room.move("east") == "east"
+    assert room.move("up") == "up"
