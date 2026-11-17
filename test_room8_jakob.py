@@ -111,6 +111,8 @@ def test_using_ember_lights_bonfire_and_consumes_ember():
 
     assert room.objects[0].state == "lit"
     assert not player.has_item("Ancient Ember")
+    assert room.move("east") == "east"
+    assert room.move("up") == "up"
 
 
 def test_bonfire_stays_unlit_without_an_ember():
@@ -152,12 +154,12 @@ def test_help_lists_the_room_commands():
     assert "use" in help_text
 
 
-def test_player_can_leave_without_lighting_the_bonfire():
+def test_player_cannot_leave_until_bonfire_is_lit():
     room = Room()
 
     assert room.objects[0].state == "dying"
-    assert room.move("east") == "east"
-    assert room.move("up") == "up"
+    assert room.move("east") is None
+    assert room.move("up") is None
 
 
 def test_looking_at_lit_bonfire_shows_its_state():
@@ -171,6 +173,7 @@ def test_looking_at_lit_bonfire_shows_its_state():
 def test_enter_sets_room_number_and_returns_selected_exit():
     room = Room()
     player = Player("Tester", 100, "healthy", 0)
+    room.objects[0].use()
 
     with patch("builtins.input", return_value="go east"):
         next_direction = room.enter(player)
@@ -193,10 +196,10 @@ def test_declining_quit_keeps_playing():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
 
-    with patch("builtins.input", side_effect=["quit", "no", "go east"]):
+    with patch("builtins.input", side_effect=["quit", "no", "quit", "yes"]):
         next_direction = room.enter(player)
 
-    assert next_direction == "east"
+    assert next_direction == "quit"
 
 
 def test_player_cannot_move_north():

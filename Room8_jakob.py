@@ -15,7 +15,8 @@ class Room:
             "the ruins of a kingdom.\n"
             "A dying bonfire glows among the ashes, its warmth barely reaching "
             "the cold walls.\n"
-            "A passage leads east, while a worn stairway climbs up into darkness."
+            "A passage leads east and a worn stairway climbs up, but both are "
+            "sealed by the dying flame."
         )
         self.exits = ['east', 'up']
         self.objects = [
@@ -176,7 +177,7 @@ class Room:
         return "The ember catches. The bonfire is lit."
 
     def hint(self):
-        return "The tombstone mentions an ember. Search the ashes, then use it on the bonfire."
+        return "The tombstone mentions an ember. Search the ashes, then light the bonfire to open the exits."
 
     def help_text(self):
         return (
@@ -188,6 +189,9 @@ class Room:
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)
         if direction in self.exits:
+            if self.objects[0].state != "lit":
+                print("You must light the bonfire before you can leave.")
+                return None
             return direction
         print("You can't go that way.")
         return None
