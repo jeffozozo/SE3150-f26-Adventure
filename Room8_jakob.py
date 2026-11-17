@@ -41,6 +41,13 @@ class Room:
                 "rusted",
                 True,
             ),
+            Object(
+                "Ancient Ashes",
+                "A pile of cold ashes lies beside the bonfire.",
+                False,
+                None,
+                True,
+            ),
         ]
 
     def enter(self, player):

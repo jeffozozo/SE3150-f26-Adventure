@@ -39,3 +39,10 @@ def test_room_has_rusty_armor_with_a_story():
 
     assert room.objects[3].name == "Rusty Armor"
     assert "knight" in room.objects[3].description.lower()
+
+
+def test_room_has_ancient_ashes_by_the_bonfire():
+    room = Room()
+
+    assert room.objects[4].name == "Ancient Ashes"
+    assert "bonfire" in room.objects[4].description.lower()
