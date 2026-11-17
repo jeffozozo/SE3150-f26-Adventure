@@ -46,3 +46,12 @@ def test_room_has_ancient_ashes_by_the_bonfire():
 
     assert room.objects[4].name == "Ancient Ashes"
     assert "bonfire" in room.objects[4].description.lower()
+
+
+def test_looking_at_ashes_reveals_a_hidden_ember():
+    room = Room()
+    ember = room.objects[5]
+
+    assert ember.visible is False
+    assert "ember" in room.look("Ancient Ashes").lower()
+    assert ember.visible

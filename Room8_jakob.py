@@ -48,6 +48,13 @@ class Room:
                 None,
                 True,
             ),
+            Object(
+                "Ancient Ember",
+                "A small ember hidden among the ashes.",
+                True,
+                "glowing",
+                False,
+            ),
         ]
 
     def enter(self, player):
@@ -93,6 +100,12 @@ class Room:
         print("Exits: " + ", ".join(self.exits))
 
     def look(self, target):
+        if target.lower() == "ancient ashes":
+            for obj in self.objects:
+                if obj.name == "Ancient Ember":
+                    obj.visible = True
+                    return "You find a hidden ember in the ashes."
+
         for obj in self.objects:
             if obj.name.lower() == target.lower():
                 return obj.description
