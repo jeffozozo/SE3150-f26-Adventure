@@ -182,6 +182,25 @@ def test_enter_sets_room_number_and_returns_selected_exit():
     assert next_direction == "east"
 
 
+def test_enter_does_not_allow_exit_until_player_solves_puzzle():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 0)
+
+    commands = [
+        "go east",
+        "look ancient ashes",
+        "get ancient ember",
+        "use ember on bonfire",
+        "go east",
+    ]
+    with patch("builtins.input", side_effect=commands):
+        next_direction = room.enter(player)
+
+    assert player.current_room == 8
+    assert room.objects[0].state == "lit"
+    assert next_direction == "east"
+
+
 def test_confirmed_quit_returns_quit():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
