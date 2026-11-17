@@ -1,0 +1,85 @@
+Room:0:jeff
+ down,1
+
+Room:1:kenneth_branch
+ north,13
+ east,14
+ up,0
+ down,2
+
+Room:2:eric_cook
+ north,16
+ south,9
+ east,6
+ west,12
+ up,1
+ down,11
+
+Room:3:david_dipalo_gross
+ north,7
+ east,13
+ west,8
+
+Room:4:dominic_dodge
+ up,15
+ down,10
+
+Room:5:bryson_francis
+ west,10
+ east,16
+ up,11
+
+Room:6:james_frost
+ west,2
+ down,7
+
+Room:7:waylon_gray
+ south,3
+ west,13
+ up,6
+
+Room:8:jakob_lloyd
+ east,3
+ up,14
+
+Room:9:kyanne_myler
+ north,2
+ up,10
+ down,14
+
+Room:10:daniel_osorio_ospina
+ east,5
+ up,4
+ down,9
+
+Room:11:austin_rager
+ north,17
+ up,2
+ down,5
+
+Room:12:owen_rasar
+ east,2
+
+Room:13:kiara_rojas_videa
+ south,1
+ east,7
+ west,3
+
+Room:14:austin_sundloff
+ south,16
+ west,1
+ up,9
+ down,8
+
+Room:15:aiden_teduits
+ east,17
+ down,4
+
+Room:16:dayne_wyler
+ north,14
+ south,2
+ west,5
+
+Room:17:jeff
+ south,11
+ west,15
