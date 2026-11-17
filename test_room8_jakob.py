@@ -12,3 +12,10 @@ def test_room_has_a_visible_dying_bonfire():
 
     assert room.objects[0].name == "Dying Bonfire"
     assert room.objects[0].visible
+
+
+def test_room_has_a_tombstone_with_a_bonfire_clue():
+    room = Room()
+
+    assert room.objects[1].name == "Weathered Tombstone"
+    assert "ember" in room.objects[1].description.lower()

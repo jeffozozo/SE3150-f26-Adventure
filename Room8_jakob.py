@@ -19,7 +19,14 @@ class Room:
                 False,
                 "dying",
                 True,
-            )
+            ),
+            Object(
+                "Weathered Tombstone",
+                "Its inscription reads: 'A hidden ember may wake the flame.'",
+                False,
+                None,
+                True,
+            ),
         ]
 
     def enter(self, player):
