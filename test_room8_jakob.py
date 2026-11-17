@@ -156,3 +156,11 @@ def test_player_can_leave_without_lighting_the_bonfire():
     assert room.objects[0].state == "dying"
     assert room.move("east") == "east"
     assert room.move("up") == "up"
+
+
+def test_looking_at_lit_bonfire_shows_its_state():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.objects[0].use()
+
+    assert "lit" in room.look("Dying Bonfire", player).lower()

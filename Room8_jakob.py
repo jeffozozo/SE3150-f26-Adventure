@@ -120,11 +120,16 @@ class Room:
 
         for obj in self.objects:
             if obj.name.lower() == target.lower() and obj.visible:
-                return obj.description
+                return self.object_description(obj)
         for obj in player.inventory:
             if obj.name.lower() == target.lower():
-                return obj.description
+                return self.object_description(obj)
         return "There is nothing like " + target + " to look at."
+
+    def object_description(self, obj):
+        if obj.state is not None:
+            return obj.description + "\nThe " + obj.name + " is " + obj.state + "."
+        return obj.description
 
     def get(self, item_name, player):
         for obj in self.objects:
