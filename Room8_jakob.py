@@ -1,3 +1,6 @@
+from object import Object
+
+
 class Room:
     def __init__(self):
         self.room_num = 8
@@ -9,7 +12,15 @@ class Room:
             "A passage leads east, while a worn stairway climbs up into darkness."
         )
         self.exits = ['east', 'up']
-        self.objects = []
+        self.objects = [
+            Object(
+                "Dying Bonfire",
+                "A small flame struggles to burn among the ashes.",
+                False,
+                "dying",
+                True,
+            )
+        ]
 
     def enter(self, player):
         player.current_room = self.room_num
@@ -48,6 +59,9 @@ class Room:
 
     def describe_room(self):
         print(self.description)
+        for obj in self.objects:
+            if obj.visible:
+                print(f"There is a {obj.name} here.")
         print("Exits: " + ", ".join(self.exits))
 
     def move(self, direction):
