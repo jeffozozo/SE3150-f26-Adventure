@@ -54,7 +54,7 @@ class Room:
                 if not target:
                     self.describe_room()
                 else:
-                    print("Nothing to describe.")
+                    print(self.look(target))
             elif command == "inventory":
                 player.show_inventory()
             elif command == "stats":
@@ -77,6 +77,12 @@ class Room:
             if obj.visible:
                 print(f"There is a {obj.name} here.")
         print("Exits: " + ", ".join(self.exits))
+
+    def look(self, target):
+        for obj in self.objects:
+            if obj.name.lower() == target.lower():
+                return obj.description
+        return "There is nothing like " + target + " to look at."
 
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)
