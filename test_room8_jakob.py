@@ -32,3 +32,10 @@ def test_looking_at_tombstone_returns_its_clue():
     room = Room()
 
     assert "hidden ember" in room.look("Weathered Tombstone")
+
+
+def test_room_has_rusty_armor_with_a_story():
+    room = Room()
+
+    assert room.objects[3].name == "Rusty Armor"
+    assert "knight" in room.objects[3].description.lower()

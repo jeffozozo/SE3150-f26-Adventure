@@ -34,6 +34,13 @@ class Room:
                 "broken",
                 True,
             ),
+            Object(
+                "Rusty Armor",
+                "The armor belonged to a knight who once guarded the shrine.",
+                False,
+                "rusted",
+                True,
+            ),
         ]
 
     def enter(self, player):
