@@ -1,5 +1,5 @@
 Room:0:jeff
- down,1
+ down,12
 
 Room:1:kenneth_branch
  north,13
@@ -68,7 +68,7 @@ Room:13:kiara_rojas_videa
 Room:14:austin_sundloff
  south,16
  west,1
- up,9
+ up,3
  down,8
 
 Room:15:aiden_teduits
