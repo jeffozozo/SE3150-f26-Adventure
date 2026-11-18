@@ -98,7 +98,7 @@ class Room:
                 elif command == "stats":
                     player.print_stats()
                 elif command in ["help", "?"]:
-                    print("Commands: go, move, touch [pedestal direction: central, up, down, north, south, east, west], look, inventory, stats, help, hint, quit")
+                    print("Commands: go, move, touch [pedestal direction: central, up, down, north, south, east, west], look, use, get, drop, inventory, stats, help, hint, quit")
                     print("Open Exits: " + ", ".join(self.exits))
 
                 elif command=="hint":
