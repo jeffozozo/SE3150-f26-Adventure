@@ -62,6 +62,8 @@ class Room:
             self.drop(target, player)
         elif verb == "use":
             self.use(target, player)
+        elif verb in ["ride", "board"] and "cart" in target:
+            return self.move("south")
         elif verb == "inventory":
             player.show_inventory()
         elif verb == "stats":
@@ -106,19 +108,20 @@ class Room:
 
     def describe_room(self):
         print("You enter a plain room with cobblestone walls. In the center of the room is a large, dark hole.")
-        print("An archway leads WEST, a corridor runs SOUTH, a ladder climbs UP,")
+        print("An archway leads WEST, a rusty minecart waits on tracks heading SOUTH, a ladder climbs UP,")
         print("and a stone staircase in the corner spirals DOWN.")
         for obj in self.objects:
             print(f"You see a {obj.name} here.")
 
     def move(self, direction):
         moves = {
-            "south": "You walk south, down the corridor.",
+            "south": "You climb into the minecart and kick off. It rattles down the tracks faster and faster, "
+            "sparks flying, around a hairpin turn and into the dark... until it screeches to a stop.",
             "west": "You step west, through the archway.",
             "up": "You climb up the ladder.",
             "down": "You take the stairs down. Good job not taking the hole instead."
         }
-        short = {"s": "south", "w": "west", "u": "up", "d": "down"}
+        short = {"s": "south", "w": "west", "u": "up", "d": "down", "minecart": "south", "cart": "south"}
         direction = short.get(direction, direction)
 
         if direction in moves:
