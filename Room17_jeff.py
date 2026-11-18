@@ -12,8 +12,13 @@ class Room:
         self.room_num = 0
         self.description = (
 '''
-    The fresh air in your face reminds you that you are still alive! 
-    Congratulations, you made it out!
+    In this room three rough hewn tunnels converge. A steep tunnel goes up. A narrow fissure in the wall leads away 
+    to the west. A dusty, level passageway disappears in the gloom to the south. Tunnel you are now in slopes down
+    to the and opens into a MASSIVE arching cave opening. The fresh air in your face reminds you that you are still alive! 
+    Thick jungle spills into the cave with no discernable track out. An impossibly large, green spider spins a web on the
+    left side of the cave, into the trees. It makes an ominous clicking sound.
+
+    You can hear trickling water but 
 '''
         )
         # other room setup - add the lamp and set up the exits.
