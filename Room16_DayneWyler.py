@@ -1,7 +1,11 @@
 class Room:
     def __init__(self):
         self.room_num = 16
-        self.description = "Room 16."
+        self.description = (
+            "You stand in an abandoned minecart junction. A battered minecart waits "
+            "beside three tracks: north toward a lantern-lit tunnel, south into a "
+            "deep cavern, and west through a narrow rock passage."
+        )
         self.exits = ['north', 'west', 'south']
         self.objects = []
 
@@ -19,9 +23,23 @@ class Room:
                 direction = self.move(target)
                 if direction is not None:
                     return direction
+            elif command in ["ride", "board"]:
+                direction = self.ride(target)
+                if direction is not None:
+                    return direction
             elif command == "look":
                 if not target:
                     self.describe_room()
+                elif target in ["cart", "minecart"]:
+                    print(
+                        "A battered minecart sits on the junction track. Its wheels "
+                        "are rusty, but it looks sturdy enough to ride."
+                    )
+                elif target in ["track", "tracks", "junction"]:
+                    print(
+                        "The tracks branch north toward a lantern-lit tunnel, south "
+                        "into a deep cavern, and west through a narrow rock passage."
+                    )
                 else:
                     print("Nothing to describe.")
             elif command == "inventory":
@@ -29,10 +47,13 @@ class Room:
             elif command == "stats":
                 player.print_stats()
             elif command in ["help", "?"]:
-                print("Commands: go, move, look, inventory, stats, help, hint, quit")
+                print(
+                    "Commands: go, move, ride cart [direction], look, inventory, "
+                    "stats, help, hint, quit"
+                )
                 print("Exits: " + ", ".join(self.exits))
             elif command == "hint":
-                print("Exits: " + ", ".join(self.exits))
+                print("Board the minecart and choose north, south, or west.")
             elif command == "quit":
                 if input("Are you sure? (y/n) ").lower().startswith("y"):
                     player.print_stats()
@@ -50,3 +71,39 @@ class Room:
             return direction
         print("You can't go that way.")
         return None
+
+    def ride(self, target):
+        words = target.split()
+        if words and words[0] in ["cart", "minecart"]:
+            words = words[1:]
+        direction = words[0] if words else ""
+        direction = {"n": "north", "s": "south", "w": "west"}.get(
+            direction, direction
+        )
+
+        if not direction:
+            direction = input("Choose a track (north, south, or west): ").lower().strip()
+            direction = {"n": "north", "s": "south", "w": "west"}.get(
+                direction, direction
+            )
+
+        route_stories = {
+            "north": (
+                "The cart rattles past a row of old lanterns and climbs a steep "
+                "slope. It bursts out of the tunnel toward the north."
+            ),
+            "south": (
+                "The cart plunges into a cavern, skimming past glittering crystals "
+                "before slowing at the southern passage."
+            ),
+            "west": (
+                "The cart squeezes through a narrow rock passage as sparks fly from "
+                "the rails. The track opens to the west."
+            ),
+        }
+        if direction not in route_stories:
+            print("Choose one of the minecart tracks: north, south, or west.")
+            return None
+
+        print(route_stories[direction])
+        return direction
