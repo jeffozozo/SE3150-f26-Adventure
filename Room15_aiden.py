@@ -13,10 +13,11 @@ class Gem(Object):
 
     def use(self, player):
         if self.state == "dull":
-            print("The gen has gone dull.")
+            print("The gem has gone dull.")
         else:
             player.score += 10
             self.state = "dull"
+            print("The Gem slowly flares until dying out into a dull green, + 10 score")
         
 
 
@@ -29,9 +30,10 @@ class Room:
         self.lights = [True, False, True, False, True, False, True, False, True]
         self.solved = False
         self.description = (
-            "As you enter the room you see a 3 by 3 pattern of lights.\n"
-            "You see the exits to the east and stairs that go down.\n"
+            "As you enter you see the exits to the east and stairs that go down.\n"
             "As you cross the threshold of the door you realize it shuts behind you as does the other exit.\n"
+            "On the wall you notice there is a panel of lights numbered 1-9.\n"
+            "Each light on the panel looks as through you can press each one."
         )
 
 
@@ -39,10 +41,8 @@ class Room:
     def enter(self, player):
         player.current_room = self.room_num
 
-        # step 1 - Print the room description
         self.describe_room()
 
-        # step 2 - make your own command loop - watch carefully about how to parse commands:
         while True:
             command = input("> ").lower().strip()
             parts = command.split(" ", 1)
@@ -53,7 +53,6 @@ class Room:
             else:
                 other_part = ""
 
-            #Do the command - You should make helper functions for each of these in your room as well.
             if command_base in ["move", "go"]:
                 next = self.move(other_part)
                 if(next != None):
@@ -97,7 +96,6 @@ class Room:
             else:
                 self.unknown_command()
 
-    # Helper functions
     def describe_room(self):
         print(self.description)
         if self.objects:
@@ -128,7 +126,6 @@ class Room:
             self.show_pattern()
             return
         
-        # Check if the object is in the room or in the player's inventory and print it description and status. You can use this code exactly.
         item = self.get_item_from_inventory(target,player)
         if item == None:
             item = self.get_item_from_object_list(target)
@@ -142,13 +139,11 @@ class Room:
                 print(f"The {item.name} is {item.state}")                   
             return
     
-    # you can use this as well. haha get it? use this...
     def use(self, item_name, player):
         item = self.get_item_from_inventory(item_name,player)
         if(item == None):
             item = self.get_item_from_object_list(item_name)
         
-        #this room only allows you to use the objects in the list or inventory. That is not a global constraint however and you can add whatever use functions you like.
         if(item == None):
             print("you can't use that.")
             return
@@ -156,10 +151,8 @@ class Room:
         item.use(player)
         
 
-    # this code could also probably be used verbatim
     def get(self, item_name, player):
 
-        # Check if the player already has the item in their inventory
         if player.has_item(item_name):
             print(f"You already have the {item_name}.")
             return
@@ -173,7 +166,6 @@ class Room:
             print(f"The {item.name} cannot be taken.")
             return
 
-        # Add the object to the player's inventory and remove it from the room
         player.inventory.append(item)
         self.objects.remove(item)
         print(f"You take the {item.name} and add it to your inventory.")
@@ -185,7 +177,6 @@ class Room:
             print(f"You don't have the {item_name}.")
             return
         
-        # remove the item from the inventory and put it in the object list
         player.inventory.remove(item)
         self.objects.append(item)
         print(f"You drop the {item.name}.")
@@ -198,13 +189,61 @@ class Room:
         player.print_stats()
 
     def press(self, n):
-        pass
+        if n not in range(1, 10):
+            print("Invalid light. Choose a number from 1 to 9.")
+            return
+
+        if self.solved:
+            print("The puzzle is already solved.")
+            return
+
+        row, col = divmod(n - 1, 3)
+
+        # Selected light and its four neighbors
+        positions = [
+            (row, col),
+            (row - 1, col),  # Above
+            (row + 1, col),  # Below
+            (row, col - 1),  # Left
+            (row, col + 1)   # Right
+        ]
+
+        for r, c in positions:
+            if 0 <= r < 3 and 0 <= c < 3:
+                index = r * 3 + c
+                self.lights[index] = not self.lights[index]
+
+        if self.all_on():
+            self.solved = True
+            print("You solved the puzzle! The exits unlock!")
+
+            # Update the room description now that the exits are open
+            self.description = (
+                "All nine lights on the panel glow steadily.\n"
+                "The door to the east stands open, and the stairs leading down are clear.\n"
+            )
+
+            self.objects.append(
+                Gem("Gem", "A mysterious glowing gem.", True, "glowing", True)
+            )
+
+        self.show_pattern()
 
     def show_pattern(self):
-        pass
+        for i in range(0, 9, 3):
+            row = []
+
+            for j in range(i, i + 3):
+                if self.lights[j]:
+                    row.append("+")
+                else:
+                    row.append("-")
+
+            print(" ".join(row))
+
 
     def all_on(self):
-        pass
+        return all(self.lights)
 
     def quit_game(self, player):
         if input("Are you sure? (y/n) ").lower().startswith('y'):
