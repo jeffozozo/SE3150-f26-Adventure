@@ -98,7 +98,7 @@ class Room:
         player.health = 0
         player.condition.append("stuck in the bottom of a hole.")
 
-        #Adventure.py checks if player is alive (plaer.is_alive()) right after the room returns.
+        #Adventure.py checks if player is alive (player.is_alive()) right after the room returns.
         # So returning any valid exit ends the game before the next room can start.
 
         return "down"
