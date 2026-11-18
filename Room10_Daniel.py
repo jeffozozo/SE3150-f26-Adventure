@@ -1,5 +1,5 @@
 from object import Object
-
+from player import Player
 
 class Room:
     def __init__(self):
