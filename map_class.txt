@@ -63,6 +63,7 @@ Room:13:kiara_rojas_videa
  south,1
  east,7
  west,3
+ down,17
 
 Room:14:austin_sundloff
  south,16
@@ -82,3 +83,4 @@ Room:16:dayne_wyler
 Room:17:jeff
  south,11
  west,15
+ up,13
