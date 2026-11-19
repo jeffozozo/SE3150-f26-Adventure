@@ -182,6 +182,8 @@ class TestRoom12(unittest.TestCase):
             output.getvalue()
         )
 
+        self.assertEqual(self.room.exits, ["east"])
+
     def test_cannot_leave_before_solving(self):
         output = io.StringIO()
 

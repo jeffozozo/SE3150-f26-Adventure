@@ -66,9 +66,9 @@ class circle(Object):
             player.score += 1
             if player.health < 100:
                 print("The light seeps into your body as it fades, you feel a bit healthier.")
-            if player.health == 100:
+            elif player.health == 100:
                 print("The light seeps into your body as it fades, you feel like new.")
-            if player.health > 100:
+            else:
                 print("The light seeps into your body as it fades, you feel better than ever!")
             print(f"With the familier sound of sliding stone, the exit door opens itself once more.\n +1 Score. +{(player.health-startHealth)} Health.")
             self.state = "solved"
