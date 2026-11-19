@@ -31,7 +31,7 @@ class circle(Object):
             print("You stepped onto the pressure plate, the sigil is dormant.")
             self.description = "A circular stone pressure plate, inlaid with a dormant arcane sigil. Seems to be out of magic."
             return
-        
+
         leftLetter = self.columns[0].letter
         midLetter = self.columns[1].letter
         rightLetter = self.columns[2].letter
@@ -57,7 +57,7 @@ class circle(Object):
                     print(f"You also spotted {corrects[0]} glowing blue\n")
                 if len(corrects) == 2: #2 correct
                     print(f"You also spotted both {corrects[0]} and {corrects[1]} glowing blue\n")
-                
+
                 print("But nothing else seems to be happening, so you step off.")
 
         if solved: #puzzle has just been solved
@@ -68,31 +68,24 @@ class circle(Object):
             print(f"The exit door opens on its own, +50 Score, +{(player.health-startHealth)} Health")
             self.state = "solved"
 
-        
-
-
-
-
-
 class Room:
 
-    objects = []
-
     def __init__(self):
-        self.room_num = 0
+        self.objects = []
+        self.room_num = 12
         self.description = ("You are in a cramped, semicircular room.")
 
         colleft = column("left column", "A column supporting the left side of the room, there's a wheel embeeded in it's center.", False, "spun to 'Y'", True,["Y","M","S"])
         colmid = column("middle column", "A column supporting the far side of the room, there's a wheel embeeded in it's center.", False, "spun to 'C'", True,["C","A","T"])
         colright = column("right column", "A column supporting the right side of the room, there's a wheel embeeded in it's center.", False, "spun to 'M'", True,["M","X","N"])
-        
-        magCirc = circle("pressure plate", "A circular stone pressure plate, inlaid with an arcane sigil. It seems magical. Can be used or moved to.", False, "unsolved?", True)
-        
+
+        magCirc = circle("pressure plate", "A circular stone pressure plate, inlaid with an arcane sigil. It seems magical. Can be used or moved to.", False, "unsolved?", True, [colleft, colmid, colright])
+
         self.objects.append(magCirc)
         self.objects.append(colleft)
         self.objects.append(colmid)
         self.objects.append(colright)
-        
+
         #this is how you declare your exits. It doesn't matter what room the attach to, I'll worry about that in the global level. 
         self.exits = ["east"]
 
@@ -101,12 +94,12 @@ class Room:
     def enter(self, player):
         player.current_room = self.room_num
 
-        if self.objects[0].state != "solved": #single time slamming of door
+        if self.objects[0].state != "solved":
             print("The door you just entered through slams shut behind you!\n")
 
         self.describe_room()
 
-        
+
         # base command loop
         while True:
             command = input("> ").lower().strip()
@@ -120,10 +113,10 @@ class Room:
 
             #Do the command - You should make helper functions for each of these in your room as well.
             if command_base in ["move", "go"]:
-                next = self.move(other_part)
+                next = self.move(other_part, player) #modified from base to allow moving to plate to give score
                 if(next != None):
                     return next
-            
+
             elif command_base == "use":
                 self.use(other_part,player)
 
@@ -145,11 +138,11 @@ class Room:
             elif command_base == "quit":
                 if(self.quit_game(player) == "quit"):
                     return "quit"
-                
+
 
             elif command_base in ["help", "?"]:
                 self.show_help()
-            
+
             elif command_base == "hint":
                 self.show_hint()
             else:
@@ -176,7 +169,7 @@ class Room:
         print("The three columns each have a carved window to a rotatable wheel in their centers. The wheels are inscribed with letters.")
         print(f"From left to right, the wheels on the columns spell out: '{leftLetter+midLetter+rightLetter}'")
 
-    def move(self, direction):
+    def move(self, direction, player):
         if direction == "east":
             if self.objects[0].state == "solved":
                 print("You walk east through the open doorway.")
@@ -185,7 +178,7 @@ class Room:
                 print("You walk into the solid stone door. >bonk<\nIt didn't budge.")
                 return None
         elif direction == "pressure plate":
-            self.use("pressure plate")
+            self.use("pressure plate", player)
             return None
         else:
             print("You can't go that way.")
@@ -195,7 +188,7 @@ class Room:
         if(target == None or target == "" ):
             self.describe_room()
             return
-        
+
         # Check if the object is in the room or in the player's inventory and print it description and status. You can use this code exactly.
         item = self.get_item_from_inventory(target,player)
         if item == None:
@@ -209,23 +202,26 @@ class Room:
             if(item.state != None): 
                 print(f"The {item.name} is {item.state}")                   
             return
-            
+
             print("looking at", target, "reveals nothing.")
             return
-    
+
     # you can use this as well. haha get it? use this...
     def use(self, item_name, player):
         item = self.get_item_from_inventory(item_name,player)
         if(item == None):
             item = self.get_item_from_object_list(item_name)
-        
+
         #this room only allows you to use the objects in the list or inventory. That is not a global constraint however and you can add whatever use functions you like.
         if(item == None):
             print("you can't use that.")
             return
-        
-        item.use()
-        
+
+        if isinstance(item, circle):#pass in player to allow for score and healing
+            item.use(player)
+        else:
+            item.use()
+
 
     # this code could also probably be used verbatim
     def get(self, item_name, player):
@@ -234,12 +230,12 @@ class Room:
         if player.has_item(item_name):
             print(f"You already have the {item_name}.")
             return
-        
+
         item = self.get_item_from_object_list(item_name)
         if(item == None):
             print(f"{item_name} is not here.")
             return
-        
+
         if not item.can_be_gotten:
             print(f"The {item.name} cannot be taken.")
             return
@@ -249,13 +245,13 @@ class Room:
         self.objects.remove(item)
         print(f"You take the {item.name} and add it to your inventory.")
         return
-    
+
     def drop(self, item_name, player):
         item = self.get_item_from_inventory(item_name,player)
         if(item == None):
             print(f"You don't have the {item_name}.")
             return
-        
+
         # remove the item from the inventory and put it in the object list
         player.inventory.remove(item)
         self.objects.append(item)
@@ -287,10 +283,9 @@ class Room:
             if item.name.lower() == item_name.lower():  
                 return item
         return None    
-    
+
     def get_item_from_object_list(self, item_name):
         for item in self.objects:
             if item.name.lower() == item_name.lower():
                 return item
         return None
-    
