@@ -96,13 +96,44 @@ class TestPressurePlate(unittest.TestCase):
         self.left.letter = "M"
         self.middle.letter = "A"
         self.right.letter = "N"
+        output = io.StringIO()
 
-        with redirect_stdout(io.StringIO()):
+        with redirect_stdout(output):
             self.plate.use(self.player)
 
         self.assertEqual(self.plate.state, "solved")
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
         self.assertEqual(self.player.health, 110)
+        self.assertIn("feel better than ever!", output.getvalue())
+        self.assertIn("out of magic", self.plate.description)
+
+    def test_health_feedback_tiers(self):
+        self.left.letter = "M"
+        self.middle.letter = "A"
+        self.right.letter = "N"
+
+        self.player.health = 30
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.plate.use(self.player)
+        self.assertEqual(self.player.health, 80)
+        self.assertIn("feel a bit healthier", output.getvalue())
+
+        self.plate.state = "unsolved?"
+        self.player.health = 50
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.plate.use(self.player)
+        self.assertEqual(self.player.health, 100)
+        self.assertIn("feel like new", output.getvalue())
+
+        self.plate.state = "unsolved?"
+        self.player.health = 100
+        output = io.StringIO()
+        with redirect_stdout(output):
+            self.plate.use(self.player)
+        self.assertEqual(self.player.health, 110)
+        self.assertIn("feel better than ever", output.getvalue())
 
     def test_health_reward_is_capped_at_110(self):
         self.player.health = 100
@@ -114,19 +145,23 @@ class TestPressurePlate(unittest.TestCase):
             self.plate.use(self.player)
 
         self.assertEqual(self.player.health, 110)
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
 
     def test_solved_plate_does_not_reward_player_again(self):
         self.left.letter = "M"
         self.middle.letter = "A"
         self.right.letter = "N"
+        output = io.StringIO()
 
         with redirect_stdout(io.StringIO()):
             self.plate.use(self.player)
+
+        with redirect_stdout(output):
             self.plate.use(self.player)
 
+        self.assertIn("sigil is dormant", output.getvalue())
         self.assertEqual(self.plate.state, "solved")
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
         self.assertEqual(self.player.health, 110)
 
 
@@ -184,7 +219,7 @@ class TestRoom12(unittest.TestCase):
 
         self.assertIsNone(destination)
         self.assertEqual(self.room.objects[0].state, "solved")
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
 
     def test_using_pressure_plate_with_wrong_letters_does_not_unlock_door(self):
         output = io.StringIO()
@@ -201,8 +236,7 @@ class TestRoom12(unittest.TestCase):
         self.assertIsNone(destination)
 
     def test_mock_gameplay_solve_leave_and_return(self):
-        # Starting letters are Y, C, M.
-        # These commands turn the wheels to M, A, N.
+        #solve once
         commands = [
             "use left column",
             "use middle column",
@@ -218,10 +252,10 @@ class TestRoom12(unittest.TestCase):
 
         self.assertEqual(destination, "east")
         self.assertEqual(self.room.objects[0].state, "solved")
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
         self.assertEqual(self.player.health, 110)
 
-        # Re-enter the same room instance after leaving.
+        # force re-entry
         with patch("builtins.input", side_effect=["move east"]):
             output = io.StringIO()
 
@@ -231,7 +265,7 @@ class TestRoom12(unittest.TestCase):
         self.assertEqual(destination, "east")
         self.assertIn("open door to the east", output.getvalue())
         self.assertEqual(self.room.objects[0].state, "solved")
-        self.assertEqual(self.player.score, 50)
+        self.assertEqual(self.player.score, 1)
         self.assertEqual(self.player.health, 110)
 
 

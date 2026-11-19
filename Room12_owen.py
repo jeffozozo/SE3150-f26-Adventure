@@ -28,8 +28,7 @@ class circle(Object):
     def use(self, player):
         # solved beforehand
         if self.state == "solved":
-            print("You stepped onto the pressure plate, the sigil is dormant.")
-            self.description = "A circular stone pressure plate, inlaid with a dormant arcane sigil. Seems to be out of magic."
+            print("You stepped onto the pressure plate, it's sigil is dormant.\nYou step back off.")
             return
 
         leftLetter = self.columns[0].letter
@@ -64,9 +63,16 @@ class circle(Object):
             print("You stepped onto the pressure plate, causing its sigil to glow brightly!")
             startHealth = player.health
             player.health = min(player.health + 50, 110) #Heal 50 HP, 10 overhealth
-            player.score += 50
-            print(f"The exit door opens on its own, +50 Score, +{(player.health-startHealth)} Health")
+            player.score += 1
+            if player.health < 100:
+                print("The light seeps into your body as it fades, you feel a bit healthier.")
+            if player.health == 100:
+                print("The light seeps into your body as it fades, you feel like new.")
+            if player.health > 100:
+                print("The light seeps into your body as it fades, you feel better than ever!")
+            print(f"With the familier sound of sliding stone, the exit door opens itself once more.\n +1 Score. +{(player.health-startHealth)} Health.")
             self.state = "solved"
+            self.description = "A circular stone pressure plate, inlaid with a dormant arcane sigil. Seems to be out of magic."
 
 class Room:
 
@@ -95,7 +101,7 @@ class Room:
         player.current_room = self.room_num
 
         if self.objects[0].state != "solved":
-            print("The door you just entered through slams shut behind you!\n")
+            print("The door you just entered through slams shut behind you! Again...\n")
 
         self.describe_room()
 
