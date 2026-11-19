@@ -28,7 +28,7 @@ class circle(Object):
     def use(self, player):
         # solved beforehand
         if self.state == "solved":
-            print("You stepped onto the pressure plate, it's sigil is dormant.\nYou step back off.")
+            print("You stepped onto the pressure plate, its sigil is dormant.\nYou step back off.")
             return
 
         leftLetter = self.columns[0].letter
@@ -70,7 +70,7 @@ class circle(Object):
                 print("The light seeps into your body as it fades, you feel like new.")
             else:
                 print("The light seeps into your body as it fades, you feel better than ever!")
-            print(f"With the familier sound of sliding stone, the exit door opens itself once more.\n +1 Score. +{(player.health-startHealth)} Health.")
+            print(f"With the familiar sound of sliding stone, the exit door opens itself once more.\n +1 Score. +{(player.health-startHealth)} Health.")
             self.state = "solved"
             self.description = "A circular stone pressure plate, inlaid with a dormant arcane sigil. Seems to be out of magic."
 
@@ -81,9 +81,9 @@ class Room:
         self.room_num = 12
         self.description = ("You are in a cramped, semicircular room.")
 
-        colleft = column("left column", "A column supporting the left side of the room, there's a wheel embeeded in it's center.", False, "spun to 'Y'", True,["Y","M","S"])
-        colmid = column("middle column", "A column supporting the far side of the room, there's a wheel embeeded in it's center.", False, "spun to 'C'", True,["C","A","T"])
-        colright = column("right column", "A column supporting the right side of the room, there's a wheel embeeded in it's center.", False, "spun to 'M'", True,["M","X","N"])
+        colleft = column("left column", "A column supporting the left side of the room, there's a wheel embedded in its center.", False, "spun to 'Y'", True,["Y","M","S"])
+        colmid = column("middle column", "A column supporting the far side of the room, there's a wheel embedded in its center.", False, "spun to 'C'", True,["C","A","T"])
+        colright = column("right column", "A column supporting the right side of the room, there's a wheel embedded in its center.", False, "spun to 'M'", True,["M","X","N"])
 
         magCirc = circle("pressure plate", "A circular stone pressure plate, inlaid with an arcane sigil. It seems magical. Can be used or moved to.", False, "unsolved?", True, [colleft, colmid, colright])
 
