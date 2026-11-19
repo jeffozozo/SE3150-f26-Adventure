@@ -44,6 +44,9 @@ class Room:
         #Describe the Room depending on the lantern state, either on or off.
         self.describe_room(lampState)
 
+        # A Variable to track if the room has been searched or not
+        searched = False;
+
         #Begin listening for the players input
         while True:
             parts = input("> ").lower().split(maxsplit=1)
@@ -55,7 +58,7 @@ class Room:
             if command in ["go", "move"]:
                 self.move(target)
             elif command == "look":
-                self.look(target, player)
+                self.look(target, player, lampState)
             elif command == "search":
                 self.search(player)
             elif command == "drop":
@@ -118,13 +121,15 @@ class Room:
             if(item == None):
                 print("you can't use that.")
                 return
-            if(item == "fragilehammer"):
-                print("You smash open the vase, and the dusty remains of something long lost to time scatters into the air. Nothing else is found.")
-            item.use()
+            if(item.name in ["fragilehammer", "FragileHammer", "hammer", "Hammer", "Fragile Hammer", "Fragile hammer", "fragile hammer"]):
+                if item.state == "working":
+                    print("You smash open the vase with the hammer, and the dusty remains of something long lost to time scatters into the air. Nothing else is found.")
+                item.use()
 
-    def look(self, target, player):
+
+    def look(self, target, player, lampstate):
             if(target == None or target == "" ):
-                self.describe_room()
+                self.describe_room(lampstate)
                 return
 
             #Check which wall they are looking at and describe the warning
@@ -149,10 +154,13 @@ class Room:
                     print(f"The {item.name} is {item.state}")                   
                 return
 
-    def search(self, player):
-        print("Amoung the crashed shelves you find an old, fragile hammer.")
-        fragilehammer = FragileHammer("FragileHammer", "A worn and fragile hammer, looks like it wll only be useful once.",True, "working", True)
-        player.inventory.append(fragilehammer)
+    def search(self, player, searched):
+        if not searched:
+            print("Amoung the crashed shelves you find an old, fragile hammer. Hammer added to inventory")
+            fragilehammer = FragileHammer("FragileHammer", "A worn and fragile hammer, looks like it wll only be useful once.",True, "working", True)
+            player.inventory.append(fragilehammer)
+        else:
+            print("The room has nothing of value left")
 
     def show_inventory(self, player):
             player.show_inventory()
@@ -173,3 +181,15 @@ class Room:
 
     def unknown_command(self):
         print("You can't do that here. Try something else or type 'help' for options or 'hint' for a clue.")
+
+    def get_item_from_inventory(self, item_name, player):
+            for item in player.inventory:
+                if item.name.lower() == item_name.lower():  
+                    return item
+            return None 
+
+    def get_item_from_object_list(self, item_name):
+            for item in self.objects:
+                if item.name.lower() == item_name.lower():
+                    return item
+            return None
