@@ -248,7 +248,7 @@ def test_score_guess_mixed():
 def test_score_guess_repeated_letters():
     # guess has two 'e's but answer has only one
     marks = Room.score_guess("erase", "water")
-    assert marks == ["-", "Y", "Y", "-", "G"]
+    assert marks == ["Y", "Y", "Y", "-", "-"]
 
 
 def test_score_guess_exact_wins_over_yellow():
