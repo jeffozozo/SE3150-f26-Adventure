@@ -189,6 +189,20 @@ def test_wrong_guess_uses_attempt(room, player, monkeypatch):
     assert player.health == 100  # not shocked yet
 
 
+def test_wrong_guess_shows_guesses_left(room, player, monkeypatch, capsys):
+    add_lamp(player)
+    play(room, player, monkeypatch, ["guess hello", "quit", "y"])
+    assert "Guesses left: 5" in capsys.readouterr().out
+
+
+def test_correct_guess_hides_guesses_left(room, player, monkeypatch, capsys):
+    add_lamp(player)
+    play(room, player, monkeypatch, ["guess water", "quit", "y"])
+    out = capsys.readouterr().out
+    assert "Guesses left: 5" not in out  # no count after a correct answer
+    assert "Guesses left: 6" in out      # next riddle starts fresh
+
+
 def test_six_wrong_guesses_shocks_and_resets(room, player, monkeypatch):
     add_lamp(player)
     commands = ["guess hello", "guess world", "guess fools", "guess beast", "guess human", "guess guest", "quit", "y"]
