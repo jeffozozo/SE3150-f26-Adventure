@@ -335,7 +335,8 @@ class Room:
         self.attempts += 1
         self.history.append((word, marks))
         self.print_guess(word, marks)
-        print(f"Guesses left: {self.MAX_ATTEMPTS - self.attempts}")
+        if word != answer:
+            print(f"Guesses left: {self.MAX_ATTEMPTS - self.attempts}")
 
         if word == answer:
             # Correct: give points and move to the next riddle.
