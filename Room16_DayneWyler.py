@@ -1,3 +1,8 @@
+#Make each minecart look different
+#Make one go off
+#Make some sort of junction puzzle that unlocks the minecarts.
+#Maybe a sliding stones puzzle? Maybe use ascii art to show the stones position?
+
 class Room:
     def __init__(self):
         self.room_num = 16
@@ -18,13 +23,14 @@ class Room:
                 continue
             command = parts[0]
             target = parts[1].strip() if len(parts) > 1 else ""
-
             if command in ["go", "move"]:
                 direction = self.move(target)
                 if direction is not None:
-                    return direction
+                    print("The path leads to a steep downward railway, which prevents you from walking that way. It does not seem that you can walk in any direction, but instead must ride one of the minecarts.")
             elif command in ["ride", "board"]:
                 direction = self.ride(target)
+                if direction is None:
+                    print("Must provide a valid direction")
                 if direction is not None:
                     return direction
             elif command == "look":
@@ -40,6 +46,7 @@ class Room:
                         "The tracks branch north toward a lantern-lit tunnel, south "
                         "into a deep cavern, and west through a narrow rock passage."
                     )
+                elif target in 
                 else:
                     print("Nothing to describe.")
             elif command == "inventory":
