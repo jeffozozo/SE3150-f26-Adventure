@@ -12,7 +12,7 @@ class Room:
             deep cavern, east seems to be blocked behind a rockfall, and west through a narrow rock passage.
             There are four minecarts, one for each track. You see a gilded cart, an over-grown cart, a plain cart, and a heavily damaged cart'''
         )
-        self.exits = ['north', 'west', 'south']
+        self.exits = ['north', 'west', 'east', 'south']
         self.objects = []
 
     def enter(self, player):
@@ -27,7 +27,7 @@ class Room:
             if command in ["go", "move"]:
                 print("The path eventually leads to a steep downward railway, which prevents you from walking that way. It does not seem that you can walk in any direction, but instead must ride one of the minecarts.")
             elif command in ["ride", "board"]:
-                cart = self.ride(target)
+                cart = self.ride(target, player)
                 if cart is None:
                     print("Must choose a valid cart (gilded cart, plain cart, heavily damaged cart, over-grown cart)")
                 else:
@@ -91,42 +91,34 @@ class Room:
         print("You can't go that way.")
         return None
 
-    def ride(self, target):
+    def ride(self, target, player):
         words = target.split()
         if words and words[0] in ["cart", "minecart"]:
             words = words[1:]
         choice = " ".join(words).strip()
 
         cart_routes = {
-            "gilded cart": "north",
-            "gold cart": "north",
-            "gilded minecart": "north",
-            "gold minecart": "north",
-            "gilded": "north",
-            "plain cart": "south",
-            "basic cart": "south",
-            "plain minecart": "south",
-            "basic minecart": "south",
-            "plain": "south",
+            "plain cart": "north",
+            "basic cart": "north",
+            "plain minecart": "north",
+            "basic minecart": "north",
+            "plain": "north",
             "heavily damaged cart": "west",
             "heavily damaged minecart": "west",
             "damaged cart": "west",
             "damaged": "west",
-            "over-grown cart": "east",
-            "overgrown cart": "east",
-            "over-grown minecart": "east",
-            "overgrown minecart": "east",
-            "overgrown": "east",
+            "gilded cart": "west",
+            "gold cart": "west",
+            "gilded minecart": "west",
+            "gold minecart": "west",
+            "gilded": "west",
+            "over-grown cart": "south",
+            "overgrown cart": "south",
+            "over-grown minecart": "south",
+            "overgrown minecart": "south",
+            "overgrown": "south",
         }
         direction = cart_routes.get(choice)
-
-        if choice in ["n", "north", "s", "south", "e", "east", "w", "west"]:
-            direction = {
-                "n": "north",
-                "s": "south",
-                "e": "east",
-                "w": "west",
-            }.get(choice, choice)
 
         if not choice:
             direction = input(
@@ -134,30 +126,24 @@ class Room:
             ).lower().strip()
             choice = direction
             direction = cart_routes.get(choice)
-            if choice in ["n", "north", "s", "south", "e", "east", "w", "west"]:
-                direction = {
-                    "n": "north",
-                    "s": "south",
-                    "e": "east",
-                    "w": "west",
-                }.get(choice, choice)
 
         route_stories = {
             "north": (
                 "The cart rattles past a row of old lanterns and climbs a steep "
-                "slope. It bursts out of the tunnel toward the north."
+                "slope. It bursts out of the tunnel toward the north before skittering to a stop near a seemingly empty room with a hole in the middle."
             ),
             "south": (
-                "The cart plunges into a cavern, skimming past glittering crystals "
-                "before slowing at the southern passage."
+                "The cart swerves left and right and up and down until it feels as though your stomach has moved itself above your head, until finally"
+                "You head towards a solid wall. Just before you hit, the wall opens up to reveal a room."
             ),
             "east": (
-                "The cart reaches a rockfall blocking the eastern track. "
-                "You cannot continue this way."
+                "You feel uneasy the second the minecart lurches forward. Before you have a chance to get off, you plummet down a steep railway."
+                "After what feels like an eternity of swerving and lurching, you look ahead, just in time to see the rails"
+                "fall away into an abyss. Before you can do anything, you feel the minecart fall into the abyss. You are dead."
             ),
             "west": (
-                "The cart squeezes through a narrow rock passage as sparks fly from "
-                "the rails. The track opens to the west."
+                "The cart plunges into a cavern, skimming past glittering crystals "
+                "before slowing at the southern passage."
             ),
         }
         if direction not in route_stories:
@@ -168,4 +154,7 @@ class Room:
             return None
 
         print(route_stories[direction])
+        if direction == "east":
+            player.health = 0
+            player.condition.append("stuck in the bottom of a hole.")
         return direction
