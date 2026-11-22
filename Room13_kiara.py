@@ -2,8 +2,7 @@ class Room:
     def __init__(self):
         self.room_num = 13
         self.description = (
-            "The Dragon's Cave is dark and cold. Skulls and bones lie "
-            "around a large sleeping dragon."
+            "The Dragon's Cave is dark and cold. Skulls and bones lie around a large sleeping dragon."
         )
         self.exits = ["south", "east", "west", "down"]
         self.objects = []
