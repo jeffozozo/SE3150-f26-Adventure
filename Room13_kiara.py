@@ -2,129 +2,70 @@ class Room:
     def __init__(self):
         self.room_num = 13
         self.description = (
-            "Room 13 is a dark, cool cave. A dragon sleeps nearby, its "
-            "heavy breathing echoing off the walls."
+            "The Dragon's Cave is dark and cold. Skulls and bones lie "
+            "around a large sleeping dragon."
         )
         self.exits = ["south", "east", "west", "down"]
-        self.actions_before_dragon_wakes = 3
+        self.objects = []
+        self.actions_before_dragon_wakes = 4
         self.actions_taken = 0
         self.cave_is_lit = False
-        self.down_puzzle_solved = False
-        self.west_crawl_started = False
+        self.player = None
 
     def enter(self, player):
         player.current_room = self.room_num
+        self.player = player
         self.actions_taken = 0
-        self.down_puzzle_solved = False
-        self.west_crawl_started = False
 
-        if not (player.has_item("lighter") or player.has_item("lamp")):
-            print("You have no lighter to see or escape. The dragon wakes and eats you!")
+        if not player.has_item("lamp"):
+            print("You have no lamp. The dragon attacks and kills you!")
             player.health = 0
             player.print_stats()
             return "quit"
 
+        self.cave_is_lit = True
         self.describe_room()
-        print(
-            "The dragon is waking. Leave quickly! East needs both a key and a gem; "
-            "down requires solving a riddle; west is an unstable crawl; south leads onward."
-        )
+        print("The dragon is asleep. Warning: it can wake before you escape.")
 
         while True:
-            parts = input("> ").lower().split(maxsplit=1)
-            if not parts:
-                continue
+            command = input("> ").lower().strip()
+            parts = command.split(" ", 1)
+            command_base = parts[0]
+            other_part = parts[1].strip() if len(parts) > 1 else ""
 
-            command = parts[0]
-            target = parts[1].strip() if len(parts) > 1 else ""
-
-            if command in ["go", "move"]:
-                direction = self._normalize_direction(target)
-                if direction not in self.exits:
-                    print("You can't go that way.")
-                elif direction == "east":
-                    if not (player.has_item("key") and player.has_item("gem")):
-                        print("The east door needs both a key and a gem. The dragon stirs!")
-                    else:
-                        print("The key and gem unlock the east door. You escape the cave!")
-                        return "east"
-                elif direction == "down":
-                    if not self.down_puzzle_solved:
-                        print("A stone hatch blocks the way down. Type 'answer <riddle answer>'.")
-                    else:
-                        print("The hatch opens and you hurry down before the dragon wakes.")
-                        return "down"
-                elif direction == "west":
-                    if not self.west_crawl_started:
-                        self.west_crawl_started = True
-                        print("Loose rocks block the west passage. Type 'crawl west' to squeeze through.")
-                    else:
-                        print("You crawl through the unstable rocks and escape west!")
-                        return "west"
-                else:
-                    print("You hurry south into the next room, leaving the dragon behind.")
-                    return "south"
-            elif command == "crawl":
-                if target not in ["", "west", "rocks"] or not self.west_crawl_started:
-                    print("There is no crawlway to use. Try 'go west' first.")
-                else:
-                    print("You squeeze through the shifting rocks and escape west!")
-                    return "west"
-            elif command == "answer":
-                if target == "shadow":
-                    self.down_puzzle_solved = True
-                    print("Correct! The stone hatch unlocks. Go down now!")
-                else:
-                    print("That answer is wrong. The hatch stays shut.")
-            elif command == "look":
-                if target in ["", "cave", "room"]:
-                    self.describe_room()
-                elif target == "dragon":
-                    print("The dragon is asleep, but it will not stay that way for long.")
-                elif target in ["lighter", "lamp"]:
-                    print("Your light can help you see the cave, but it won't stop the dragon.")
-                elif target == "hatch":
-                    print("A stone hatch blocks the way down. A riddle is carved into it.")
-                    print("I follow you everywhere, but disappear in the dark. What am I?")
-                elif target in ["rocks", "west"]:
-                    print("Loose rocks have nearly sealed the west passage.")
-                else:
-                    print("You can't see anything else in the darkness.")
-            elif command == "use":
-                if target in ["lighter", "lamp"] and (
-                    player.has_item("lighter") or player.has_item("lamp")
-                ):
-                    self.cave_is_lit = True
-                    print("You light your lighter. The cave exits and the stone hatch are visible.")
-                else:
-                    print("You can only use the lighter or lamp you brought with you.")
-            elif command == "inventory":
+            if command_base in ["go", "move"]:
+                direction = self.move(other_part, player)
+                if direction is not None:
+                    return direction
+            elif command_base == "use":
+                self.use(other_part, player)
+            elif command_base == "look":
+                self.look(other_part)
+            elif command_base in ["get", "take"]:
+                self.get(other_part, player)
+            elif command_base in ["drop", "put"]:
+                self.drop(other_part, player)
+            elif command_base == "inventory":
                 player.show_inventory()
-            elif command == "stats":
+            elif command_base == "stats":
                 player.print_stats()
-            elif command in ["help", "?"]:
-                print(
-                    "Commands: go <direction>, use lighter, look, answer <answer>, "
-                    "crawl west, inventory, stats, hint, quit"
-                )
-                print("Exits: " + ", ".join(self.exits))
-            elif command == "hint":
-                print("The hatch answer is something that follows you in the light.")
-                print("For west, go west and then crawl. For south, just go south.")
-            elif command == "quit":
+            elif command_base in ["help", "?"]:
+                self.show_help()
+            elif command_base == "hint":
+                self.show_hint()
+            elif command_base == "quit":
                 if input("Are you sure? (y/n) ").lower().startswith("y"):
                     player.print_stats()
                     return "quit"
-                continue
             else:
-                print("Command unavailable. Type 'help' or 'hint' for guidance.")
+                self.unknown_command()
 
             self.actions_taken += 1
             actions_left = self.actions_before_dragon_wakes - self.actions_taken
             if actions_left > 0:
-                print(f"The dragon stirs. {actions_left} action(s) left!")
+                print("The dragon stirs. " + str(actions_left) + " action(s) left!")
             else:
-                print("The dragon wakes, catches you in the cave, and eats you!")
+                print("The dragon wakes and eats you!")
                 player.health = 0
                 player.print_stats()
                 return "quit"
@@ -132,14 +73,116 @@ class Room:
     def describe_room(self):
         print(self.description)
         if self.cave_is_lit:
-            print("Your lighter reveals the cave exits: " + ", ".join(self.exits))
+            print("Your lamp reveals the exits: " + ", ".join(self.exits))
         else:
-            print("It is too dark to see the exits. You hear a dragon sleeping nearby.")
+            print("It is too dark to see the exits.")
 
-    def _normalize_direction(self, direction):
-        return {
+    def move(self, direction, player=None):
+        if player is None:
+            player = self.player
+
+        direction = {
             "s": "south",
             "e": "east",
             "w": "west",
             "d": "down",
         }.get(direction, direction)
+
+        if direction == "south":
+            print("You take the narrow passage back to Room 1.")
+            return "south"
+
+        if direction == "east":
+            if player is not None and player.has_item("key"):
+                print("You unlock the eastern door and enter Room 7.")
+                return "east"
+            print("The eastern door is locked. You need a key.")
+            return None
+
+        if direction == "west":
+            if player is not None and player.has_item("hammer"):
+                print("You break the cracked stone barrier and enter Room 3.")
+                return "west"
+            print("The western passage is blocked. You need a hammer.")
+            return None
+
+        if direction == "down":
+            print("A trapdoor asks: I have no lungs, but I need air.")
+            print("I have no mouth, but water kills me. What am I?")
+            answer = input("Answer: ").lower().strip()
+            if answer in ["fire", "fire.","Fire"]:
+                print("The trapdoor opens and you enter Room 17.")
+                return "down"
+            print("The trapdoor remains closed.")
+            return None
+
+        print("You can't go that way.")
+        return None
+
+    def use(self, item_name, player):
+        if item_name == "lamp" and player.has_item("lamp"):
+            self.cave_is_lit = True
+            print("You light the lamp. The cave exits are visible!")
+        else:
+            print("You can't use that.")
+
+    def look(self, target):
+        if target in ["", "cave", "room"]:
+            self.describe_room()
+        elif target == "dragon":
+            print("The dragon is asleep, but it is beginning to stir.")
+        elif target == "lamp":
+            print("The lamp can illuminate the dark cave.")
+        else:
+            item = self.get_item_from_object_list(target)
+            if item is not None:
+                print(item.description)
+            else:
+                print("There is nothing like that to look at.")
+
+    def get(self, item_name, player):
+        if item_name == "":
+            print("Get what?")
+            return
+        item = self.get_item_from_object_list(item_name)
+        if item is None:
+            print(item_name + " is not here.")
+            return
+        if not item.can_be_gotten:
+            print("The " + item.name + " cannot be taken.")
+            return
+        player.inventory.append(item)
+        self.objects.remove(item)
+        print("You take the " + item.name + ".")
+
+    def drop(self, item_name, player):
+        item = self.get_item_from_inventory(item_name, player)
+        if item is None:
+            print("You don't have " + item_name + ".")
+            return
+        player.inventory.remove(item)
+        self.objects.append(item)
+        print("You drop the " + item.name + ".")
+
+    def show_help(self):
+        print("Commands: go, move, look, use, get, take, drop")
+        print("inventory, stats, hint, quit")
+
+    def show_hint(self):
+        print("Use the lamp. Keep a key and hammer in your inventory.")
+        print("The trapdoor riddle answer is something that burns.")
+
+    def unknown_command(self):
+        print("Command unavailable. Type help for a list of commands.")
+
+    def get_item_from_inventory(self, item_name, player):
+        for item in player.inventory:
+            if item.name.lower() == item_name.lower():
+                return item
+        return None
+
+    def get_item_from_object_list(self, item_name):
+        for item in self.objects:
+            if item.name.lower() == item_name.lower():
+                return item
+        return None
