@@ -2,16 +2,22 @@ from object import Object
 from player import Player
 
 class Room:
-    objects = []
-
     def __init__(self):
-        self.room_num = 15
-        self.description = "A dusty library. Bookshelves line the walls, and a heavy wooden chest sits in the center. There is a door to the west."
-        self.exits = ["west"]
+        self.room_num = 10
+        self.description = (
+            "A dusty library. Bookshelves line the walls, and a heavy "
+            "wooden chest sits in the center."
+        )
+        self.exits = ["east", "up", "down"]
 
-        # Object requires: name, description, state, can_be_gotten, visible
         self.key = Object("key", "A small brass key.", "tarnished", True, True)
-        self.chest = Object("chest", "A heavy wooden chest with a brass lock.", "locked", False, True)
+        self.chest = Object(
+            "chest",
+            "A heavy wooden chest with a brass lock.",
+            "locked",
+            False,
+            True
+        )
         self.objects = [self.key, self.chest]
 
     def enter(self, player):
@@ -25,9 +31,9 @@ class Room:
             other_part = parts[1] if len(parts) > 1 else ""
 
             if command_base in ["move", "go"]:
-                next = self.move(other_part)
-                if next is not None:
-                    return next
+                next_room = self.move(other_part)
+                if next_room is not None:
+                    return next_room
             elif command_base in ["get", "take"]:
                 self.get(other_part, player)
             elif command_base == "use":
@@ -46,25 +52,38 @@ class Room:
 
     def describe_room(self):
         print(self.description)
-        if self.objects:
-            for obj in self.objects:
-                print(f"There is a {obj.name} here.")
+        for obj in self.objects:
+            print(f"There is a {obj.name} here.")
 
     def move(self, direction):
-        if direction in ["west", "w"]:
-            print("You head through the door to the west.")
-            return "west"
+        directions = {
+            "east": "east",
+            "e": "east",
+            "up": "up",
+            "u": "up",
+            "down": "down",
+            "d": "down"
+        }
+
+        if direction in directions:
+            direction = directions[direction]
+            print(f"You head {direction}.")
+            return direction
+
         print("You can't go that way.")
         return None
 
     def get(self, item_name, player):
         item = self.get_item_from_object_list(item_name)
+
         if item is None:
             print(f"{item_name} is not here.")
             return
+
         if not item.can_be_gotten:
             print(f"The {item.name} cannot be taken.")
             return
+
         player.inventory.append(item)
         self.objects.remove(item)
         print(f"You take the {item.name}.")
@@ -76,7 +95,10 @@ class Room:
                     print("The chest is already unlocked.")
                 else:
                     self.chest.state = "unlocked"
-                    self.chest.description = "A heavy wooden chest, now unlocked. It contains a pile of gold!"
+                    self.chest.description = (
+                        "A heavy wooden chest, now unlocked. "
+                        "It contains a pile of gold!"
+                    )
                     print("You use the key to unlock the chest. It clicks open.")
             else:
                 print("You don't have the key.")
@@ -87,10 +109,12 @@ class Room:
         if target == "":
             self.describe_room()
             return
+
         item = self.get_item_from_inventory(target, player)
+
         if item is None:
             item = self.get_item_from_object_list(target)
-        
+
         if item is not None:
             print(item.description)
             print(f"The {item.name} is {item.state}.")
@@ -98,11 +122,14 @@ class Room:
             print(f"There is nothing like {target} to look at.")
 
     def quit_game(self, player):
-        if input("Are you sure? (y/n) ").lower().startswith('y'):
+        if input("Are you sure? (y/n) ").lower().startswith("y"):
             return "quit"
 
     def show_help(self):
-        print("Available commands: move, go, look, get, take, use, inventory, quit, help")
+        print(
+            "Available commands: move, go, look, get, take, "
+            "use, inventory, quit, help"
+        )
 
     def get_item_from_inventory(self, item_name, player):
         for item in player.inventory:
@@ -115,3 +142,6 @@ class Room:
             if item.name.lower() == item_name.lower():
                 return item
         return None
+
+
+#testing again testing again for the third time
