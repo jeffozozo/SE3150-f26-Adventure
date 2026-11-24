@@ -58,6 +58,17 @@ def describe_room5():
             assert room.enter(player) == "quit"
             assert "Health: 100" in capsys.readouterr().out
 
+        def it_asks_for_confirmation_with_the_exact_prompt(room, player, monkeypatch):
+            prompts = []
+
+            def answer_yes(prompt=""):
+                prompts.append(prompt)
+                return "y"
+
+            monkeypatch.setattr("builtins.input", answer_yes)
+            assert run(room, player, "quit") == "quit"
+            assert prompts == ["Are you sure? (y/n) "]
+
         def it_keeps_playing_when_the_player_declines_to_quit(room, player, monkeypatch, capsys):
             type_commands(monkeypatch, ["quit", "n", "go west"])
             assert room.enter(player) == "west"
@@ -71,7 +82,9 @@ def describe_room5():
             assert room.button.state == "pressed"
             assert player.score == 0
             assert player.current_room == 5
-            assert "stumble out of the tunnel" in capsys.readouterr().out
+            output = capsys.readouterr().out
+            assert "minecart rockets out of the tunnel" in output
+            assert "hits the laptop" in output
 
         def it_keeps_the_tunnel_closed_when_arriving_from_elsewhere(room, player, monkeypatch):
             player.current_room = 10
@@ -85,7 +98,7 @@ def describe_room5():
             player.current_room = 16
             type_commands(monkeypatch, ["go up"])
             room.enter(player)
-            assert "stumble out of the tunnel" not in capsys.readouterr().out
+            assert "minecart rockets out of the tunnel" not in capsys.readouterr().out
             assert player.score == 35
 
         def it_remembers_puzzle_progress_between_visits(room, player, monkeypatch):
@@ -114,6 +127,12 @@ def describe_room5():
             solve_puzzle(room, player)
             assert run(room, player, "go east") == "east"
             assert run(room, player, "go e") == "east"
+
+        def it_rides_the_minecart_east(room, player, capsys):
+            solve_puzzle(room, player)
+            capsys.readouterr()
+            run(room, player, "go east")
+            assert "minecart" in capsys.readouterr().out
 
         def it_rejects_directions_not_on_the_map(room, player, capsys):
             assert run(room, player, "go north") is None
@@ -161,6 +180,13 @@ def describe_room5():
             player.inventory.append(Lamp("lamp", "A worn lamp.", True, "off", True))
             run(room, player, "look lamp")
             assert "A worn lamp." in capsys.readouterr().out
+
+        def it_does_not_print_a_missing_state(room, player, capsys):
+            player.inventory.append(Lamp("rope", "A sturdy rope.", True, None, True))
+            run(room, player, "look rope")
+            output = capsys.readouterr().out
+            assert "A sturdy rope." in output
+            assert "None" not in output
 
         def it_treats_hidden_items_as_not_there(room, player, capsys):
             run(room, player, "look button")
@@ -249,6 +275,11 @@ def describe_room5():
             assert room.puzzle_state == CRASHED
             assert "need to be holding the bat" in capsys.readouterr().out
 
+        def it_does_not_reveal_the_hidden_bat_when_used(room, player, capsys):
+            run(room, player, "use bat")
+            assert "You don't have a bat to use." in capsys.readouterr().out
+            assert not room.bat.visible
+
         def it_only_hits_the_laptop(room, player, capsys):
             run(room, player, "look rack", "get bat", "hit rack")
             assert room.puzzle_state == CRASHED
@@ -272,7 +303,9 @@ def describe_room5():
             solve_puzzle(room, player)
             capsys.readouterr()
             run(room, player, "look")
-            assert "mining tunnel leading east" in capsys.readouterr().out
+            output = capsys.readouterr().out
+            assert "mining tunnel leading east" in output
+            assert "minecart" in output
 
     def describe_score():
 

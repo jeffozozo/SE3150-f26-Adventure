@@ -62,7 +62,9 @@ class Room:
         if player.current_room == 16 and self.puzzle_state != TUNNEL_OPEN:
             self.reveal_button()
             self.unlock_tunnel()
-            print("You stumble out of the tunnel and crash into a laptop. The wall stays open behind you.")
+            print("Your minecart rockets out of the tunnel and rams the server rack.\n"
+                  "WHACK! An old keyboard flies off the junk pile and hits the laptop. The screen flickers\n"
+                  "green, and a big red button on the rack clicks in. The wall stays open behind you.")
         player.current_room = self.room_num
         self.describe_room()
         while True:
@@ -114,7 +116,8 @@ class Room:
         elif self.puzzle_state == BUTTON_REVEALED:
             print("The laptop is dented, and a panel has popped off the rack, exposing a big red button.")
         else:
-            print("The east wall has slid aside, revealing a mining tunnel leading east.")
+            print("The east wall has slid aside, revealing a mining tunnel leading east.\n"
+                  "A minecart waits on the tracks.")
 
         for item in self.objects:
             if item.visible:
@@ -128,7 +131,10 @@ class Room:
     def move(self, direction):
         direction = {"w": "west", "u": "up", "e": "east"}.get(direction, direction)
         if direction in self.available_exits():
-            print(f"You head {direction}.")
+            if direction == "east":
+                print("You leap into the minecart. It plunges into the dark, screeching around every bend!")
+            else:
+                print(f"You head {direction}.")
             return direction
         if direction == "east":
             print("There's just a stone wall that way.")
@@ -155,7 +161,8 @@ class Room:
             print(f"You don't see a {target} here.")
             return
         print(item.description)
-        print(f"The {item.name} is {item.state}.")
+        if item.state is not None:
+            print(f"The {item.name} is {item.state}.")
 
     def look_rack(self):
         print("The rack blinks and whirs. Behind it is a pile of old hardware.")
@@ -198,6 +205,11 @@ class Room:
         if not name:
             print("Use what?")
             return
+
+        item = player.get_item(name) or self.find_in_room(name)
+        if item is None:
+            print(f"You don't have a {name} to use.")
+            return
         if name == "bat":
             if player.has_item("bat"):
                 self.hit_laptop(player)
@@ -205,10 +217,6 @@ class Room:
                 print("You need to be holding the bat.")
             return
 
-        item = player.get_item(name) or self.find_in_room(name)
-        if item is None:
-            print(f"You don't have a {name} to use.")
-            return
         item.use()
         if item is self.button:
             self.open_tunnel(player)
