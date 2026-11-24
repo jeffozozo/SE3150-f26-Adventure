@@ -13,6 +13,7 @@ def describe_room_16():
         mock_player = MagicMock()
         mock_player.health = 100
         mock_player.condition = []
+        mock_player.inventory = []
         return mock_player
 
     @pytest.fixture
@@ -24,10 +25,13 @@ def describe_room_16():
         return _feed
 
     def describe_initialization():
-        def it_sets_room_metadata(room):
+        def it_sets_room_metadata_and_initial_puzzle_state(room):
             assert room.room_num == 16
             assert set(room.exits) == {"north", "south", "east", "west"}
-            assert room.objects == []
+            assert room.objects == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert room.slots == [room.empty, room.empty, room.empty]
+            assert room.trough == ["[ gold ]", "[ moss ]", "[ iron ]"]
+            assert room.get_unlocked_cart() is None
 
     def describe_movement_commands():
         @pytest.mark.parametrize("command", ["go north", "move south"])
@@ -36,53 +40,182 @@ def describe_room_16():
             room.enter(player)
 
             output = capsys.readouterr().out
-            assert "must ride one of the minecarts" in output
+            assert "unlock and ride one of the minecarts" in output
+
+    def describe_taking_stones():
+        def it_picks_up_the_first_stone_when_no_name_is_given(room, player, feed_inputs):
+            feed_inputs("take", "quit", "y")
+            room.enter(player)
+
+            assert player.inventory == ["flint"]
+            assert "flint" not in room.objects
+
+        def it_picks_up_a_specific_stone(room, player, feed_inputs):
+            feed_inputs("take quartz stone", "quit", "y")
+            room.enter(player)
+
+            assert player.inventory == ["quartz"]
+            assert "quartz" not in room.objects
+
+        def it_picks_up_all_stones(room, player, feed_inputs):
+            feed_inputs("take all", "quit", "y")
+            room.enter(player)
+
+            assert player.inventory == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert room.objects == []
+
+        def it_handles_unknown_stone_names(room, player, feed_inputs, capsys):
+            feed_inputs("take diamond", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "You don't see 'diamond' here." in output
+            assert player.inventory == []
+
+    def describe_switchboard_puzzle():
+        @pytest.mark.parametrize(
+            "slide_cmd, expected_cart",
+            [
+                ("slide iron 1", "plain"),
+                ("slide moss 2", "over-grown"),
+                ("slide gold 3", "gilded"),
+                ("slide iron 2", "heavily damaged"),
+            ],
+        )
+        def it_unlocks_the_matching_cart(room, player, feed_inputs, slide_cmd, expected_cart):
+            feed_inputs(slide_cmd, "quit", "y")
+            room.enter(player)
+
+            assert room.get_unlocked_cart() == expected_cart
+
+        def it_displaces_an_existing_artifact_back_to_the_trough(room, player, feed_inputs):
+            feed_inputs("slide iron 1", "slide gold 1", "quit", "y")
+            room.enter(player)
+
+            assert room.slots[0] == "[ gold ]"
+            assert "[ iron ]" in room.trough
+
+        def it_removes_an_artifact_via_remove_or_take_slot(room, player, feed_inputs):
+            feed_inputs("slide iron 1", "take slot 1", "quit", "y")
+            room.enter(player)
+
+            assert room.slots == [room.empty, room.empty, room.empty]
+            assert "[ iron ]" in room.trough
+            assert room.get_unlocked_cart() is None
+
+        def it_resets_all_slots_and_restores_the_trough(room, player, feed_inputs):
+            feed_inputs("slide iron 1", "slide moss 2", "reset", "quit", "y")
+            room.enter(player)
+
+            assert room.slots == [room.empty, room.empty, room.empty]
+            assert room.trough == ["[ gold ]", "[ moss ]", "[ iron ]"]
+            assert room.get_unlocked_cart() is None
 
     def describe_riding_minecarts():
         @pytest.mark.parametrize(
-            "command, expected_direction",
+            "setup_cmds, ride_cmd, expected_direction",
             [
-                ("ride plain cart", "north"),
-                ("board basic minecart", "north"),
-                ("ride over-grown cart", "south"),
-                ("ride overgrown", "south"),
-                ("ride gilded cart", "west"),
-                ("ride gold minecart", "west"),
-                ("ride heavily damaged cart", "west"),
-                ("ride damaged", "west"),
+                (["slide iron 1"], "ride plain cart", "north"),
+                (["slide iron 1"], "board basic minecart", "north"),
+                (["slide iron 2"], "ride heavily damaged cart", "east"),
+                (["slide iron 2"], "ride damaged", "east"),
             ],
         )
-        def it_returns_the_mapped_direction(room, player, feed_inputs, command, expected_direction):
-            feed_inputs(command)
+        def it_rides_unlocked_direct_carts(room, player, feed_inputs, setup_cmds, ride_cmd, expected_direction):
+            feed_inputs(*setup_cmds, ride_cmd)
             result = room.enter(player)
 
             assert result == expected_direction
             assert player.current_room == 16
 
-        def it_prompts_for_a_cart_when_none_is_given(room, player, feed_inputs):
-            feed_inputs("ride", "plain")
+        @pytest.mark.parametrize(
+            "setup_cmds, ride_cmd, expected_direction",
+            [
+                (["take flint", "slide moss 2"], "ride over-grown cart", "south"),
+                (["take flint", "slide moss 2"], "ride overgrown", "south"),
+                (["take flint", "slide gold 3"], "ride gilded cart", "west"),
+                (["take flint", "slide gold 3"], "ride gold minecart", "west"),
+            ],
+        )
+        def it_rides_lever_tracks_when_timing_and_stone_succeed(
+            room, player, feed_inputs, setup_cmds, ride_cmd, expected_direction
+        ):
+            feed_inputs(*setup_cmds, ride_cmd, "hold", "throw")
+            result = room.enter(player)
+
+            assert result == expected_direction
+            assert player.current_room == 16
+            assert player.inventory == []
+
+        def it_kills_the_player_on_the_east_track(room, player, feed_inputs):
+            feed_inputs("slide iron 2", "ride damaged")
+            result = room.enter(player)
+
+            assert result == "east"
+            assert player.health == 0
+            assert "stuck in the bottom of a hole." in player.condition
+
+        def it_boards_the_unlocked_cart_when_no_target_is_given(room, player, feed_inputs):
+            feed_inputs("slide iron 1", "ride")
             result = room.enter(player)
 
             assert result == "north"
 
+        def it_blocks_riding_when_all_carts_are_locked(room, player, feed_inputs, capsys):
+            feed_inputs("ride", "ride plain cart", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "All four minecarts are locked to the tracks." in output
+            assert "A heavy iron clamp locks it to the track." in output
+
         def it_rejects_invalid_carts_and_keeps_looping(room, player, feed_inputs, capsys):
-            feed_inputs("ride rusty cart", "ride plain cart")
+            feed_inputs("slide iron 1", "ride rusty cart", "ride plain cart")
             result = room.enter(player)
 
             output = capsys.readouterr().out
-            assert "Must choose a valid cart" in output
+            assert "Choose one of the minecarts:" in output
             assert result == "north"
+
+    def describe_lever_sequence():
+        def it_loops_back_when_throwing_too_early(room, player, feed_inputs, capsys):
+            feed_inputs("take flint", "slide gold 3", "ride gilded", "throw", "quit", "y")
+            result = room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "too early" in output
+            assert player.inventory == []
+            assert result == "quit"
+
+        def it_loops_back_when_holding_too_long(room, player, feed_inputs, capsys):
+            feed_inputs("take flint", "slide moss 2", "ride overgrown", "hold", "hold", "quit", "y")
+            result = room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "You hold too long!" in output
+            assert player.inventory == ["flint"]
+            assert result == "quit"
+
+        def it_loops_back_when_player_has_no_stones(room, player, feed_inputs, capsys):
+            feed_inputs("slide gold 3", "ride gilded", "hold", "throw", "quit", "y")
+            result = room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "no stones to throw" in output
+            assert result == "quit"
 
     def describe_looking_around():
         @pytest.mark.parametrize(
             "command, expected_text",
             [
                 ("look", "abandoned minecart junction"),
-                ("look gilded cart", "gold covered minecart"),
-                ("look plain cart", "dirty and well-used minecart"),
-                ("look heavily damaged cart", "heavily dented and battered"),
-                ("look over-grown cart", "abandoned for 70 years"),
-                ("look tracks", "tracks branch north"),
+                ("look switchboard", "ONE ITEM ALIGNS ONE PATH"),
+                ("look stones", "throwing-sized stones"),
+                ("look gilded cart", "gold-covered minecart"),
+                ("look plain cart", "dirty, sturdy minecart"),
+                ("look heavily damaged cart", "heavily dented minecart"),
+                ("look over-grown cart", "vine-choked cart"),
+                ("look tracks", "Heavy iron linkages"),
                 ("look ceiling", "Nothing to describe."),
             ],
         )
@@ -108,7 +241,7 @@ def describe_room_16():
             assert player.print_stats.call_count == 2
 
         def it_cancels_quit_when_user_says_no(room, player, feed_inputs):
-            feed_inputs("quit", "n", "ride plain cart")
+            feed_inputs("quit", "n", "slide iron 1", "ride plain cart")
             result = room.enter(player)
 
             assert result == "north"
