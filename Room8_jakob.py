@@ -3,6 +3,7 @@ from object import Object
 
 class Bonfire(Object):
     def use(self):
+        self.name = "Bonfire"
         self.state = "lit"
         self.description = "A steady bonfire burns brightly among the ashes."
 
@@ -109,7 +110,11 @@ class Room:
         print(self.description)
         for obj in self.objects:
             if obj.visible:
-                print(f"There is a {obj.name} here.")
+                if obj.name == "Ancient Ashes":
+                    print("There are Ancient Ashes here.")
+                else:
+                    article = "an" if obj.name[0].lower() in "aeiou" else "a"
+                    print(f"There is {article} {obj.name} here.")
         print("Exits: " + ", ".join(self.exits))
 
     def look(self, target, player):
@@ -163,16 +168,19 @@ class Room:
     def use(self, target, player):
         parts = target.lower().split(" on ", 1)
         item_name = parts[0].strip()
+        if item_name.startswith("the "):
+            item_name = item_name[4:]
+        if item_name in ["bonfire", "dying bonfire"]:
+            return "You need an ember to light the bonfire."
 
         if item_name not in ["ember", "ancient ember"]:
             return "You can't use that here."
-        if len(parts) == 2 and parts[1].strip() not in [
-            "bonfire",
-            "dying bonfire",
-            "the bonfire",
-            "the dying bonfire",
-        ]:
-            return "That cannot be used there."
+        if len(parts) == 2:
+            target_name = parts[1].strip()
+            if target_name.startswith("the "):
+                target_name = target_name[4:]
+            if target_name not in ["bonfire", "dying bonfire"]:
+                return "That cannot be used there."
 
         ember = player.get_item("Ancient Ember")
         if ember is None:
@@ -181,6 +189,12 @@ class Room:
             return "The bonfire is already lit."
 
         self.objects[0].use()
+        self.description = (
+            "You stand in the Forgotten Shrine, a quiet stone chamber beneath "
+            "the ruins of a kingdom.\n"
+            "A steady bonfire burns among the ashes, warming the cold walls.\n"
+            "The passage east and the stairway up are now open."
+        )
         player.inventory.remove(ember)
         return "The ember catches. The bonfire is lit."
 

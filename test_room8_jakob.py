@@ -146,9 +146,40 @@ def test_using_ember_lights_bonfire_and_consumes_ember():
     room.use("ember on bonfire", player)
 
     assert room.objects[0].state == "lit"
+    assert room.objects[0].name == "Bonfire"
     assert not player.has_item("Ancient Ember")
+    assert "sealed" not in room.description.lower()
     assert room.move("east") == "east"
     assert room.move("up") == "up"
+
+
+def test_using_the_ember_lights_the_bonfire():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.look("ashes", player)
+    room.get("ember", player)
+
+    room.use("the ember", player)
+
+    assert room.objects[0].state == "lit"
+
+
+def test_using_bonfire_without_ember_explains_what_is_needed():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    assert "need an ember" in room.use("bonfire", player).lower()
+
+
+def test_describing_room_uses_correct_object_grammar():
+    room = Room()
+    room.look("ashes", Player("Tester", 100, "healthy", 8))
+    with patch("builtins.print") as printed:
+        room.describe_room()
+
+    lines = [call.args[0] for call in printed.call_args_list]
+    assert "There are Ancient Ashes here." in lines
+    assert "There is an Ancient Ember here." in lines
 
 
 def test_bonfire_stays_unlit_without_an_ember():
@@ -203,7 +234,7 @@ def test_looking_at_lit_bonfire_shows_its_state():
     player = Player("Tester", 100, "healthy", 8)
     room.objects[0].use()
 
-    assert "lit" in room.look("Dying Bonfire", player).lower()
+    assert "lit" in room.look("Bonfire", player).lower()
 
 
 def test_enter_sets_room_number_and_returns_selected_exit():
