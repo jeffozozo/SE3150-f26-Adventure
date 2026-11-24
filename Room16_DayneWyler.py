@@ -36,11 +36,11 @@ class Room:
 
         # 5 distinct throwing stone Object instances available to pick up in the room
         self.objects = [
-            ThrowingStone("flint", "A sharp-edged chunk of dark flint, small enough to throw accurately.", True, "on_ground", True),
-            ThrowingStone("granite", "A dense, speckled lump of granite with good throwing weight.", True, "on_ground", True),
+            ThrowingStone("flint", "A sharp-edged chunk of dark flint", True, "on_ground", True),
+            ThrowingStone("granite", "A dense, speckled lump of granite", True, "on_ground", True),
             ThrowingStone("quartz", "A cloudy white chunk of quartz that catches the dim lantern light.", True, "on_ground", True),
-            ThrowingStone("slate", "A flat, smooth disc of slate—easy to whip through the air.", True, "on_ground", True),
-            ThrowingStone("limestone", "A chalky, fist-sized piece of limestone chipped from the cavern wall.", True, "on_ground", True),
+            ThrowingStone("slate", "A flat, smooth disc of slate", True, "on_ground", True),
+            ThrowingStone("pumice", "A hollow, light rock that seems to have been purposefully placed here.", True, "on_ground", True),
         ]
         self.throwing_stone_names = {stone.name for stone in self.objects}
 
@@ -118,7 +118,7 @@ class Room:
                     self.handle_take(target, player)
 
             elif command == "use":
-                self.handle_use(target, player)
+                self.use(target, player)
 
             elif command == "reset":
                 self.slots = [self.empty, self.empty, self.empty]
@@ -130,6 +130,9 @@ class Room:
                 cart = self.ride(target, player)
                 if cart is not None:
                     return cart
+            
+            elif command == "drop":
+                self.handle_drop(target, player)
 
             elif command == "look":
                 self.handle_look(target, player)
@@ -144,7 +147,7 @@ class Room:
                 print(
                     "Commands:\n"
                     "  look [target]          - Inspect room, switchboard, stones, or carts\n"
-                    "  take [stone/all]       - Pick up loose throwing stones from the floor\n"
+                    "  take [stone/all]       - Pick up loose stones from the floor\n"
                     "  use [item]             - Use an item in your inventory\n"
                     "  slide [artifact] [1/2/3]  - Slide a switchboard artifact (gold, moss, iron) into a slot\n"
                     "  remove [1/2/3]         - Slide a switchboard artifact back to the trough\n"
@@ -169,16 +172,17 @@ class Room:
             else:
                 print("Command unavailable. Type 'help' for puzzle commands.")
 
-    def handle_use(self, target, player):
-        if not target:
-            print("Use what?")
+    def use(self, item_name, player):
+        item = self.get_item_from_inventory(item_name,player)
+        if(item == None):
+            item = self.get_item_from_object_list(item_name)
+        
+        #this room only allows you to use the objects in the list or inventory. That is not a global constraint however and you can add whatever use functions you like.
+        if(item == None):
+            print("you can't use that.")
             return
-        cleaned = target.replace("stone", "").replace("rock", "").strip()
-        for item in player.inventory:
-            if isinstance(item, Object) and item.name.lower() == cleaned:
-                item.use()
-                return
-        print(f"You don't have '{target}' in your inventory.")
+        
+        item.use()
 
     def handle_take(self, target, player):
         available = [obj for obj in self.objects if obj.visible and obj.can_be_gotten]
@@ -215,6 +219,30 @@ class Room:
         else:
             available_names = ", ".join(obj.name for obj in available)
             print(f"You don't see '{target}' here. Available stones: {available_names}")
+    
+    def handle_drop(self, item_name, player):
+        item = self.get_item_from_inventory(item_name,player)
+        if(item == None):
+            print(f"You don't have the {item_name}.")
+            return
+        
+        # remove the item from the inventory and put it in the object list
+        player.inventory.remove(item)
+        self.objects.append(item)
+        print(f"You drop the {item.name}.")
+        return 
+    
+    def get_item_from_inventory(self, item_name, player):
+        for item in player.inventory:
+            if item.name.lower() == item_name.lower():  
+                return item
+        return None 
+
+    def get_item_from_object_list(self, item_name):
+        for item in self.objects:
+            if item.name.lower() == item_name.lower():
+                return item
+        return None
 
     def handle_slide(self, target):
         words = [w for w in target.split() if w not in {"slot", "into", "to"}]
@@ -289,10 +317,9 @@ class Room:
         elif target in ["stones", "pile", "rocks", "floor", "ground"]:
             visible_stones = [obj.name for obj in self.objects if obj.visible]
             if visible_stones:
-                print(f"Scattered near the tracks are throwing-sized stones: {', '.join(visible_stones)}.")
-                print("They look just the right weight for knocking a track lever from a moving cart.")
+                print(f"Scattered near the tracks are small stones: {', '.join(visible_stones)}.")
             else:
-                print("The pile of loose throwing stones on the floor is empty.")
+                print("The pile of loose stones on the floor is empty.")
         elif target in ["gilded cart", "gold cart", "gilded minecart", "gold minecart", "gilded"]:
             state = "UNLOCKED" if self.get_unlocked_cart() == "gilded" else "LOCKED by a thick iron wheel-clamp"
             print(f"A pristine, gold-covered minecart on well-maintained west-bound tracks. It is currently {state}.")
@@ -318,6 +345,10 @@ class Room:
             match = next((obj for obj in candidates if obj.name.lower() == cleaned), None)
             if match:
                 match.print_description()
+                if match.state == "on_ground":
+                    print(f"The {match.name} is on the ground.")
+                else:
+                    print(f"The {match.name} is in your inventory")
             else:
                 print("Nothing to describe.")
 
@@ -329,7 +360,6 @@ class Room:
         print("Exits: " + ", ".join(self.exits))
 
     def get_player_stone(self, player):
-        """Finds and removes one ThrowingStone Object from the player's inventory, or returns None."""
         for item in player.inventory:
             if isinstance(item, ThrowingStone) or (
                 isinstance(item, Object) and item.name in self.throwing_stone_names
@@ -378,7 +408,7 @@ class Room:
             return False
 
         # Phase 2: Right alongside the lever — correct choice is 'throw'
-        print("\nYou hold steady as the cart hurtles closer... NOW! The lever is right alongside you!")
+        print("\nYou hold steady as the cart hurtles closer... The lever is nearly alongside you!")
         choice2 = self.prompt_hold_or_throw()
 
         if choice2 == "throw":
