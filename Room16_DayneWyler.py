@@ -33,8 +33,6 @@ class Room:
             "and three engraved artifacts resting in a trough beside it."
         )
         self.exits = ['north', 'west', 'east', 'south']
-
-        # 5 distinct throwing stone Object instances available to pick up in the room
         self.objects = [
             ThrowingStone("flint", "A sharp-edged chunk of dark flint", True, "on_ground", True),
             ThrowingStone("granite", "A dense, speckled lump of granite", True, "on_ground", True),
@@ -50,7 +48,6 @@ class Room:
         self.trough = ["[ gold ]", "[ moss ]", "[ iron ]"]
 
     def get_unlocked_cart(self):
-        """Evaluates the current slot positions and returns which cart is unlocked."""
         if self.slots == ["[ iron ]", self.empty, self.empty]:
             return "plain"
         elif self.slots == [self.empty, "[ moss ]", self.empty]:

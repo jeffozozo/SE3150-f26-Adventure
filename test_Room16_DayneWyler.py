@@ -45,7 +45,28 @@ def describe_room_16():
             output = capsys.readouterr().out
             assert "unlock and ride one of the minecarts" in output
 
-    def describe_taking_and_using_stones():
+    def describe_taking_and_dropping_items():
+        ALL_STONES = ["flint", "granite", "quartz", "slate", "limestone"]
+
+        @pytest.mark.parametrize("stone_name", ALL_STONES)
+        def it_picks_up_each_individual_stone(room, player, feed_inputs, stone_name):
+            feed_inputs(f"take {stone_name}", "quit", "y")
+            room.enter(player)
+
+            assert [obj.name for obj in player.inventory] == [stone_name]
+            assert player.inventory[0].state == "carried"
+            assert stone_name not in [obj.name for obj in room.objects]
+            assert len(room.objects) == 4
+
+        def it_picks_up_every_stone_one_by_one(room, player, feed_inputs):
+            commands = [f"take {name}" for name in ALL_STONES] + ["quit", "y"]
+            feed_inputs(*commands)
+            room.enter(player)
+
+            assert [obj.name for obj in player.inventory] == ALL_STONES
+            assert all(obj.state == "carried" for obj in player.inventory)
+            assert room.objects == []
+
         def it_picks_up_the_first_stone_when_no_name_is_given(room, player, feed_inputs):
             feed_inputs("take", "quit", "y")
             room.enter(player)
@@ -56,7 +77,7 @@ def describe_room_16():
             assert player.inventory[0].state == "carried"
             assert "flint" not in [obj.name for obj in room.objects]
 
-        def it_picks_up_a_specific_stone(room, player, feed_inputs):
+        def it_picks_up_a_specific_stone_with_suffix(room, player, feed_inputs):
             feed_inputs("take quartz stone", "quit", "y")
             room.enter(player)
 
@@ -65,13 +86,54 @@ def describe_room_16():
             assert player.inventory[0].state == "carried"
             assert "quartz" not in [obj.name for obj in room.objects]
 
-        def it_picks_up_all_stones(room, player, feed_inputs):
+        def it_picks_up_all_stones_at_once(room, player, feed_inputs):
             feed_inputs("take all", "quit", "y")
             room.enter(player)
 
-            assert [obj.name for obj in player.inventory] == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert [obj.name for obj in player.inventory] == ALL_STONES
             assert all(obj.state == "carried" for obj in player.inventory)
             assert room.objects == []
+
+        @pytest.mark.parametrize("stone_name", ALL_STONES)
+        def it_drops_each_individual_stone(room, player, feed_inputs, capsys, stone_name):
+            feed_inputs(f"take {stone_name}", f"drop {stone_name}", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert f"You drop the {stone_name}." in output
+            assert player.inventory == []
+            assert stone_name in [obj.name for obj in room.objects]
+            assert len(room.objects) == 5
+
+            dropped_stone = next(obj for obj in room.objects if obj.name == stone_name)
+            assert dropped_stone.state == "on_ground"
+
+        def it_drops_every_stone_one_by_one_after_taking_all(room, player, feed_inputs):
+            commands = ["take all"] + [f"drop {name}" for name in ALL_STONES] + ["quit", "y"]
+            feed_inputs(*commands)
+            room.enter(player)
+
+            assert player.inventory == []
+            assert {obj.name for obj in room.objects} == set(ALL_STONES)
+            assert all(obj.state == "on_ground" for obj in room.objects)
+
+        def it_allows_re_taking_a_dropped_stone(room, player, feed_inputs):
+            feed_inputs("take slate", "drop slate", "take slate", "quit", "y")
+            room.enter(player)
+
+            assert [obj.name for obj in player.inventory] == ["slate"]
+            assert player.inventory[0].state == "carried"
+            assert "slate" not in [obj.name for obj in room.objects]
+
+        @pytest.mark.parametrize("stone_name", ALL_STONES)
+        def it_handles_dropping_a_stone_not_in_inventory(room, player, feed_inputs, capsys, stone_name):
+            feed_inputs(f"drop {stone_name}", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert f"You don't have the {stone_name}." in output
+            assert player.inventory == []
+            assert len(room.objects) == 5
 
         def it_handles_unknown_stone_names(room, player, feed_inputs, capsys):
             feed_inputs("take diamond", "quit", "y")
