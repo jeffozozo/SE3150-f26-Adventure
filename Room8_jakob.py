@@ -133,6 +133,8 @@ class Room:
 
     def matches(self, obj, target):
         target = target.lower().strip()
+        if target.startswith("the "):
+            target = target[4:]
         name = obj.name.lower()
         return target == name or target in name.split()
 
@@ -170,23 +172,26 @@ class Room:
         item_name = parts[0].strip()
         if item_name.startswith("the "):
             item_name = item_name[4:]
-        if item_name in ["bonfire", "dying bonfire"]:
-            return "You need an ember to light the bonfire."
 
-        if item_name not in ["ember", "ancient ember"]:
+        bonfire_names = ["bonfire", "dying bonfire"]
+        if item_name not in ["ember", "ancient ember"] + bonfire_names:
             return "You can't use that here."
+
         if len(parts) == 2:
             target_name = parts[1].strip()
             if target_name.startswith("the "):
                 target_name = target_name[4:]
-            if target_name not in ["bonfire", "dying bonfire"]:
+            if target_name not in bonfire_names:
                 return "That cannot be used there."
+
+        if self.objects[0].state == "lit":
+            return "The bonfire is already lit."
+        if item_name in bonfire_names:
+            return "You need an ember to light the bonfire."
 
         ember = player.get_item("Ancient Ember")
         if ember is None:
             return "You need an ember to light the bonfire."
-        if self.objects[0].state == "lit":
-            return "The bonfire is already lit."
 
         self.objects[0].use()
         self.description = (

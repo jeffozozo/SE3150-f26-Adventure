@@ -128,6 +128,19 @@ def test_player_can_drop_ember_by_short_name():
     assert not player.has_item("Ancient Ember")
 
 
+def test_object_commands_accept_a_leading_the():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    assert "small flame" in room.look("the bonfire", player).lower()
+    room.look("ashes", player)
+    room.get("the ember", player)
+    assert player.has_item("Ancient Ember")
+    assert "small ember" in room.look("the ember", player).lower()
+    room.drop("the ember", player)
+    assert not player.has_item("Ancient Ember")
+
+
 def test_using_the_bonfire_lights_it():
     room = Room()
     bonfire = room.objects[0]
@@ -169,6 +182,16 @@ def test_using_bonfire_without_ember_explains_what_is_needed():
     player = Player("Tester", 100, "healthy", 8)
 
     assert "need an ember" in room.use("bonfire", player).lower()
+
+
+def test_using_lit_bonfire_or_ember_says_bonfire_is_already_lit():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.objects[0].use()
+
+    assert "already lit" in room.use("bonfire", player).lower()
+    assert "already lit" in room.use("the bonfire", player).lower()
+    assert "already lit" in room.use("ember", player).lower()
 
 
 def test_describing_room_uses_correct_object_grammar():
