@@ -9,7 +9,7 @@ class Room:
             "  - West:  A gilded cart facing a narrow, crystal-lined rock passage.\n"
             "  - East:  A heavily damaged cart facing a collapsed rockfall.\n\n"
             "In the center of the room stands a heavy stone switchboard with three sliding grooves "
-            "and three engraved stones resting in a trough beside it."
+            "and three engraved artifacts resting in a trough beside it."
         )
         self.exits = ['north', 'west', 'east', 'south']
 
@@ -25,13 +25,16 @@ class Room:
     def get_unlocked_cart(self):
         """Evaluates the current slot positions and returns which cart is unlocked."""
         if self.slots == ["[ iron ]", self.empty, self.empty]:
+            player.score += 10
             return "plain"
         elif self.slots == [self.empty, "[ moss ]", self.empty]:
+            player.score += 10
             return "over-grown"
         elif self.slots == [self.empty, self.empty, "[ gold ]"]:
+            player.score += 10
             return "gilded"
         elif self.slots.count(self.empty) < 3:
-            # There is at least one stone in the slots
+            # There is at least one non-artifact in the slots
             return "heavily damaged"
         return None
 
@@ -85,7 +88,6 @@ class Room:
                 self.handle_remove(target)
 
             elif command in ["take", "grab", "get", "pickup"]:
-                # Allow 'take 1' to remove a switchboard stone, otherwise pick up throwing stones
                 if target.replace("slot", "").strip() in ["1", "2", "3"]:
                     self.handle_remove(target)
                 else:
@@ -94,7 +96,7 @@ class Room:
             elif command == "reset":
                 self.slots = [self.empty, self.empty, self.empty]
                 self.trough = ["[ gold ]", "[ moss ]", "[ iron ]"]
-                print("You slide all the stones back into the trough. Heavy iron clamps snap shut on all four carts.")
+                print("You slide all the artifacts back into the trough. Heavy iron clamps snap shut on all four carts.")
                 self.render_switchboard()
 
             elif command in ["ride", "board"]:
@@ -116,8 +118,8 @@ class Room:
                     "Commands:\n"
                     "  look [target]          - Inspect room, switchboard, stones, or carts\n"
                     "  take [stone/all]       - Pick up loose throwing stones from the floor\n"
-                    "  slide [stone] [1/2/3]  - Slide a switchboard stone (gold, moss, iron) into a slot\n"
-                    "  remove [1/2/3]         - Slide a switchboard stone back to the trough\n"
+                    "  slide [artifact] [1/2/3]  - Slide a switchboard artifact (gold, moss, iron) into a slot\n"
+                    "  remove [1/2/3]         - Slide a switchboard artifact back to the trough\n"
                     "  reset                  - Return all switchboard stones to the trough\n"
                     "  ride [cart name]       - Board an unlocked minecart\n"
                     "  inventory / stats / hint / quit"
@@ -125,7 +127,7 @@ class Room:
 
             elif command == "hint":
                 print(
-                    "1. Align a single stone with its matching slot to unlock its cart:\n"
+                    "1. Align a single artifact with its matching slot to unlock its cart:\n"
                     "   - Slot 1 points North\n"
                     "   - Slot 2 points South\n"
                     "   - Slot 3 points West\n"
@@ -167,21 +169,21 @@ class Room:
             print(f"You don't see '{target}' here. Available stones: {', '.join(self.objects)}")
 
     def handle_slide(self, target):
-        words = [w for w in target.replace("slot", "").replace("into", "").replace("to", "").split()]
+        words = [w for w in target.split() if w not in {"slot", "into", "to"}]
         if len(words) < 2:
-            print("Specify a stone and a slot number (1, 2, or 3). Example: 'slide gold 3'")
+            print("Specify an artifact and a slot number (1, 2, or 3). Example: 'slide gold 3'")
             return
 
-        stone_map = {
+        artifact_map = {
             "g": "[ gold ]", "gold": "[ gold ]",
             "m": "[ moss ]", "moss": "[ moss ]",
             "i": "[ iron ]", "iron": "[ iron ]",
         }
-        stone = stone_map.get(words[0].lower().strip())
+        artifact = artifact_map.get(words[0].lower().strip())
         slot_input = words[1]
 
-        if not stone:
-            print("Invalid stone. Choose 'gold', 'moss', or 'iron'.")
+        if not artifact:
+            print("Invalid artifact. Choose 'gold', 'moss', or 'iron'.")
             return
         if slot_input not in ["1", "2", "3"]:
             print("Invalid slot. Choose slot 1, 2, or 3.")
@@ -189,19 +191,19 @@ class Room:
 
         idx = int(slot_input) - 1
 
-        if stone in self.trough:
-            self.trough.remove(stone)
-        elif stone in self.slots:
-            self.slots[self.slots.index(stone)] = self.empty
+        if artifact in self.trough:
+            self.trough.remove(artifact)
+        elif artifact in self.slots:
+            self.slots[self.slots.index(artifact)] = self.empty
 
         displaced = self.slots[idx]
         if displaced != self.empty:
             self.trough.append(displaced)
-            print(f"You slide the {displaced} stone out of Slot {slot_input} and replace it with the {stone} stone.")
+            print(f"You slide the {displaced} artifact out of Slot {slot_input} and replace it with the {artifact} artifact.")
         else:
-            print(f"You grind the {stone} stone into Slot {slot_input} with a heavy *CLUNK*.")
+            print(f"You grind the {artifact} artifact into Slot {slot_input} with a heavy *CLUNK*.")
 
-        self.slots[idx] = stone
+        self.slots[idx] = artifact
 
         unlocked = self.get_unlocked_cart()
         if unlocked:
@@ -217,13 +219,13 @@ class Room:
             print("Specify which slot to clear (1, 2, or 3). Example: 'remove 1'")
             return
         idx = int(slot_input) - 1
-        stone = self.slots[idx]
-        if stone == self.empty:
+        artifact = self.slots[idx]
+        if artifact == self.empty:
             print(f"Slot {slot_input} is already empty.")
             return
         self.slots[idx] = self.empty
-        self.trough.append(stone)
-        print(f"You slide the {stone} stone out of Slot {slot_input} and back into the trough.")
+        self.trough.append(artifact)
+        print(f"You slide the {artifact} artifact out of Slot {slot_input} and back into the trough.")
         self.render_switchboard()
 
     def handle_look(self, target):
@@ -288,8 +290,7 @@ class Room:
 
     def ride_lever_sequence(self, player):
         """
-        Timing sequence for the 3 safe tracks.
-        Right sequence: 'hold' once, then 'throw' (requires a stone in inventory).
+        Correct sequence: 'hold' once, then 'throw' (requires a stone in inventory).
         Returns True if the player flips the lever, or False if they loop back.
         """
         print(
@@ -326,6 +327,7 @@ class Room:
                     f"Direct hit! You whip your {stone} straight into the lever with a loud *CLANG*!\n"
                     "The rails snap over just in time, pulling you off the loop!"
                 )
+                player.score += 25
                 return True
             else:
                 print(
@@ -347,7 +349,7 @@ class Room:
             if unlocked:
                 normalized_cart = unlocked
             else:
-                print("All four minecarts are locked to the tracks. Align the switchboard stones first.")
+                print("All four minecarts are locked to the tracks. Align the switchboard artifacts first.")
                 return None
         else:
             words = target.split()
