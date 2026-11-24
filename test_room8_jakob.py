@@ -40,6 +40,13 @@ def test_looking_at_tombstone_returns_its_clue():
     assert "hidden ember" in room.look("Weathered Tombstone", player)
 
 
+def test_player_can_look_at_tombstone_by_short_name():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    assert "hidden ember" in room.look("tombstone", player)
+
+
 def test_room_has_rusty_armor_with_a_story():
     room = Room()
 
@@ -64,6 +71,14 @@ def test_looking_at_ashes_reveals_a_hidden_ember():
     assert ember.visible
 
 
+def test_player_can_look_at_ashes_by_short_name():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    assert "hidden ember" in room.look("ashes", player).lower()
+    assert room.objects[5].visible
+
+
 def test_player_can_take_the_ember_after_finding_it():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
@@ -79,6 +94,16 @@ def test_player_can_take_the_ember_after_finding_it():
     assert ember not in room.objects
 
 
+def test_player_can_get_ember_by_short_name():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.look("ashes", player)
+
+    room.get("ember", player)
+
+    assert player.has_item("Ancient Ember")
+
+
 def test_player_can_drop_the_ember_back_in_the_room():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
@@ -90,6 +115,17 @@ def test_player_can_drop_the_ember_back_in_the_room():
 
     assert not player.has_item("Ancient Ember")
     assert ember in room.objects
+
+
+def test_player_can_drop_ember_by_short_name():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.look("ashes", player)
+    room.get("ember", player)
+
+    room.drop("ember", player)
+
+    assert not player.has_item("Ancient Ember")
 
 
 def test_using_the_bonfire_lights_it():

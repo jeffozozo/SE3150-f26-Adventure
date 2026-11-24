@@ -113,19 +113,29 @@ class Room:
         print("Exits: " + ", ".join(self.exits))
 
     def look(self, target, player):
-        if target.lower() == "ancient ashes":
-            for obj in self.objects:
-                if obj.name == "Ancient Ember":
-                    obj.visible = True
-                    return "You find a hidden ember in the ashes."
-
         for obj in self.objects:
-            if obj.name.lower() == target.lower() and obj.visible:
+            if self.matches(obj, target) and obj.visible:
+                if obj.name == "Ancient Ashes":
+                    ember = self.find_object(self.objects, "Ancient Ember")
+                    if ember is not None and not ember.visible:
+                        ember.visible = True
+                        return "You find a hidden ember in the ashes."
                 return self.object_description(obj)
         for obj in player.inventory:
-            if obj.name.lower() == target.lower():
+            if self.matches(obj, target):
                 return self.object_description(obj)
         return "There is nothing like " + target + " to look at."
+
+    def matches(self, obj, target):
+        target = target.lower().strip()
+        name = obj.name.lower()
+        return target == name or target in name.split()
+
+    def find_object(self, objects, target):
+        for obj in objects:
+            if self.matches(obj, target):
+                return obj
+        return None
 
     def object_description(self, obj):
         if obj.state is not None:
@@ -133,24 +143,22 @@ class Room:
         return obj.description
 
     def get(self, item_name, player):
-        for obj in self.objects:
-            if obj.name.lower() == item_name.lower():
-                if not obj.visible:
-                    return item_name + " is not here."
-                if not obj.can_be_gotten:
-                    return "The " + obj.name + " cannot be taken."
-                player.inventory.append(obj)
-                self.objects.remove(obj)
-                return "You take the " + obj.name + "."
-        return item_name + " is not here."
+        obj = self.find_object(self.objects, item_name)
+        if obj is None or not obj.visible:
+            return item_name + " is not here."
+        if not obj.can_be_gotten:
+            return "The " + obj.name + " cannot be taken."
+        player.inventory.append(obj)
+        self.objects.remove(obj)
+        return "You take the " + obj.name + "."
 
     def drop(self, item_name, player):
-        for obj in player.inventory:
-            if obj.name.lower() == item_name.lower():
-                player.inventory.remove(obj)
-                self.objects.append(obj)
-                return "You drop the " + obj.name + "."
-        return "You don't have the " + item_name + "."
+        obj = self.find_object(player.inventory, item_name)
+        if obj is None:
+            return "You don't have the " + item_name + "."
+        player.inventory.remove(obj)
+        self.objects.append(obj)
+        return "You drop the " + obj.name + "."
 
     def use(self, target, player):
         parts = target.lower().split(" on ", 1)
