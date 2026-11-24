@@ -1,24 +1,24 @@
 from object import Object
 from player import Player
 
+
 class ThrowingStone(Object):
 
-    def __init__(self, name, description, can_be_gotten, state, visible):
+    def __init__(self, name, description, can_be_gotten, state=None, visible=True):
         super().__init__(name, description, can_be_gotten, state, visible)
 
     def use(self):
-        if self.state == "carried":
-            print(
-                f"You weigh the {self.name} in your hand. It's the right size for throwing"
-            )
-        elif self.state == "thrown":
+        if self.state == "thrown":
             print(f"You already threw the {self.name}.")
         else:
-            print(f"You'll need to pick up the {self.name} before you can use it.")
+            print(
+                f"You weigh the {self.name} in your hand. It's the right size for throwing."
+            )
 
     def __str__(self):
         return self.name
-        
+
+
 class Room:
     def __init__(self):
         self.room_num = 16
@@ -34,11 +34,11 @@ class Room:
         )
         self.exits = ['north', 'west', 'east', 'south']
         self.objects = [
-            ThrowingStone("flint", "A sharp-edged chunk of dark flint", True, "on_ground", True),
-            ThrowingStone("granite", "A dense, speckled lump of granite", True, "on_ground", True),
-            ThrowingStone("quartz", "A cloudy white chunk of quartz that catches the dim lantern light.", True, "on_ground", True),
-            ThrowingStone("slate", "A flat, smooth disc of slate", True, "on_ground", True),
-            ThrowingStone("pumice", "A hollow, light rock that seems to have been purposefully placed here.", True, "on_ground", True),
+            ThrowingStone("flint", "A sharp-edged chunk of dark flint", True, None, True),
+            ThrowingStone("granite", "A dense, speckled lump of granite", True, None, True),
+            ThrowingStone("quartz", "A cloudy white chunk of quartz that catches the dim lantern light.", True, None, True),
+            ThrowingStone("slate", "A flat, smooth disc of slate", True, None, True),
+            ThrowingStone("pumice", "A hollow, light rock that seems to have been purposefully placed here.", True, None, True),
         ]
         self.throwing_stone_names = {stone.name for stone in self.objects}
 
@@ -127,7 +127,7 @@ class Room:
                 cart = self.ride(target, player)
                 if cart is not None:
                     return cart
-            
+
             elif command == "drop":
                 self.handle_drop(target, player)
 
@@ -170,16 +170,20 @@ class Room:
                 print("Command unavailable. Type 'help' for puzzle commands.")
 
     def use(self, item_name, player):
-        item = self.get_item_from_inventory(item_name,player)
-        if(item == None):
-            item = self.get_item_from_object_list(item_name)
-        
-        #this room only allows you to use the objects in the list or inventory. That is not a global constraint however and you can add whatever use functions you like.
-        if(item == None):
+        item = self.get_item_from_inventory(item_name, player)
+        if item is not None:
+            item.use()
+            return
+
+        item = self.get_item_from_object_list(item_name)
+        if item is None:
             print("you can't use that.")
             return
-        
-        item.use()
+
+        if isinstance(item, ThrowingStone):
+            print(f"You'll need to pick up the {item.name} before you can use it.")
+        else:
+            item.use()
 
     def handle_take(self, target, player):
         available = [obj for obj in self.objects if obj.visible and obj.can_be_gotten]
@@ -190,7 +194,6 @@ class Room:
         if not target or target in ["stone", "rock", "a stone", "a rock"]:
             picked = available[0]
             self.objects.remove(picked)
-            picked.state = "carried"
             player.inventory.append(picked)
             print(f"You pick up a piece of {picked.name} and put it in your inventory.")
             return
@@ -199,7 +202,6 @@ class Room:
             taken_names = []
             for obj in available:
                 self.objects.remove(obj)
-                obj.state = "carried"
                 player.inventory.append(obj)
                 taken_names.append(obj.name)
             print(f"You scoop up all the remaining stones ({', '.join(taken_names)}) and put them in your inventory.")
@@ -210,30 +212,29 @@ class Room:
         match = next((obj for obj in available if obj.name.lower() == cleaned), None)
         if match:
             self.objects.remove(match)
-            match.state = "carried"
             player.inventory.append(match)
             print(f"You pick up the {match.name} and put it in your inventory.")
         else:
             available_names = ", ".join(obj.name for obj in available)
             print(f"You don't see '{target}' here. Available stones: {available_names}")
-    
+
     def handle_drop(self, item_name, player):
-        item = self.get_item_from_inventory(item_name,player)
-        if(item == None):
+        item = self.get_item_from_inventory(item_name, player)
+        if item is None:
             print(f"You don't have the {item_name}.")
             return
-        
+
         # remove the item from the inventory and put it in the object list
         player.inventory.remove(item)
         self.objects.append(item)
         print(f"You drop the {item.name}.")
-        return 
-    
+        return
+
     def get_item_from_inventory(self, item_name, player):
         for item in player.inventory:
-            if item.name.lower() == item_name.lower():  
+            if item.name.lower() == item_name.lower():
                 return item
-        return None 
+        return None
 
     def get_item_from_object_list(self, item_name):
         for item in self.objects:
@@ -342,10 +343,10 @@ class Room:
             match = next((obj for obj in candidates if obj.name.lower() == cleaned), None)
             if match:
                 match.print_description()
-                if match.state == "on_ground":
+                if match in self.objects:
                     print(f"The {match.name} is on the ground.")
-                else:
-                    print(f"The {match.name} is in your inventory")
+                elif player is not None and match in player.inventory:
+                    print(f"The {match.name} is in your inventory.")
             else:
                 print("Nothing to describe.")
 
