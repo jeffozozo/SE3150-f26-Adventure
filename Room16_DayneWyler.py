@@ -79,7 +79,6 @@ class Room:
                     (S)
 
         Trough: {trough_str}
-        Key: [ iron ] = North | [ moss ] = South | [ gold ] = West
         Status: {status}
         ============================
         """)
