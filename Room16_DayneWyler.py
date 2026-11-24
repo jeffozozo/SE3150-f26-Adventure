@@ -14,9 +14,8 @@ class Room:
         self.exits = ['north', 'west', 'east', 'south']
         self.objects = []
 
-        # Puzzle State: 3 slots on the switchboard (None = empty)
-        self.slots = [None, None, None]
-        self.trough = ['gold', 'moss', 'iron']
+        self.slots = ["[ . ]", "[ . ]", "[ . ]"]
+        self.trough = ["[ G ]", "[ M ]", "[ I ]"]
 
     def get_unlocked_cart(self):
         """Evaluates the current slot positions and returns which cart is unlocked."""
@@ -32,11 +31,9 @@ class Room:
 
     def render_switchboard(self):
         """Renders the current state of the sliding stones puzzle in ASCII art."""
-        def fmt(val):
-            return {"gold": "[ G ]", "moss": "[ M ]", "iron": "[ I ]"}.get(val, "[ . ]")
 
-        s1, s2, s3 = fmt(self.slots[0]), fmt(self.slots[1]), fmt(self.slots[2])
-        trough_str = " ".join(fmt(s) for s in self.trough) if self.trough else "(empty)"
+        s1, s2, s3 = self.slots
+        trough_str = " ".join(self.trough) if self.trough else "(empty)"
         unlocked = self.get_unlocked_cart()
         status = f"UNLOCKED: {unlocked.upper()} CART" if unlocked else "ALL WHEEL-LOCKS ENGAGED"
 
