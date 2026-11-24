@@ -1,10 +1,9 @@
 Room:0:jeff
- down,12
+ down,1
 
 Room:1:kenneth_branch
  north,13
  east,14
- up,0
  down,2
 
 Room:2:eric_cook
@@ -64,6 +63,7 @@ Room:13:kiara_rojas_videa
  south,1
  east,7
  west,3
+ down,17
 
 Room:14:austin_sundloff
  south,16
@@ -83,3 +83,4 @@ Room:16:dayne_wyler
 Room:17:jeff
  south,11
  west,15
+ up,13
