@@ -416,13 +416,19 @@ class Room:
             words = target.split()
             if words and words[0] in ["cart", "minecart"]:
                 words = words[1:]
+            if words and words[-1] in ["cart", "minecart"]:
+                words = words[:-1]
             choice = " ".join(words).strip()
 
             aliases = {
-                "plain cart": "plain", "basic cart": "plain", "plain minecart": "plain", "plain": "plain",
-                "heavily damaged cart": "heavily damaged", "damaged cart": "heavily damaged", "damaged": "heavily damaged", "heavily damaged": "heavily damaged",
-                "gilded cart": "gilded", "gold cart": "gilded", "gilded minecart": "gilded", "gilded": "gilded",
-                "over-grown cart": "over-grown", "overgrown cart": "over-grown", "overgrown": "over-grown", "over-grown": "over-grown",
+                "plain": "plain",
+                "basic": "plain",
+                "heavily damaged": "heavily damaged",
+                "damaged": "heavily damaged",
+                "gilded": "gilded",
+                "gold": "gilded",
+                "over-grown": "over-grown",
+                "overgrown": "over-grown",
             }
             normalized_cart = aliases.get(choice)
 

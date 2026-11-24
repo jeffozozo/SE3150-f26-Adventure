@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock
-from Room16_DayneWyler import Room
+from Room16_DayneWyler import Room, Object, ThrowingStone
 
 
 def describe_room_16():
@@ -12,6 +12,7 @@ def describe_room_16():
     def player():
         mock_player = MagicMock()
         mock_player.health = 100
+        mock_player.score = 0
         mock_player.condition = []
         mock_player.inventory = []
         return mock_player
@@ -28,7 +29,9 @@ def describe_room_16():
         def it_sets_room_metadata_and_initial_puzzle_state(room):
             assert room.room_num == 16
             assert set(room.exits) == {"north", "south", "east", "west"}
-            assert room.objects == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert all(isinstance(obj, ThrowingStone) and isinstance(obj, Object) for obj in room.objects)
+            assert [obj.name for obj in room.objects] == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert all(obj.state == "on_ground" and obj.visible and obj.can_be_gotten for obj in room.objects)
             assert room.slots == [room.empty, room.empty, room.empty]
             assert room.trough == ["[ gold ]", "[ moss ]", "[ iron ]"]
             assert room.get_unlocked_cart() is None
@@ -42,26 +45,32 @@ def describe_room_16():
             output = capsys.readouterr().out
             assert "unlock and ride one of the minecarts" in output
 
-    def describe_taking_stones():
+    def describe_taking_and_using_stones():
         def it_picks_up_the_first_stone_when_no_name_is_given(room, player, feed_inputs):
             feed_inputs("take", "quit", "y")
             room.enter(player)
 
-            assert player.inventory == ["flint"]
-            assert "flint" not in room.objects
+            assert len(player.inventory) == 1
+            assert isinstance(player.inventory[0], ThrowingStone)
+            assert player.inventory[0].name == "flint"
+            assert player.inventory[0].state == "carried"
+            assert "flint" not in [obj.name for obj in room.objects]
 
         def it_picks_up_a_specific_stone(room, player, feed_inputs):
             feed_inputs("take quartz stone", "quit", "y")
             room.enter(player)
 
-            assert player.inventory == ["quartz"]
-            assert "quartz" not in room.objects
+            assert len(player.inventory) == 1
+            assert player.inventory[0].name == "quartz"
+            assert player.inventory[0].state == "carried"
+            assert "quartz" not in [obj.name for obj in room.objects]
 
         def it_picks_up_all_stones(room, player, feed_inputs):
             feed_inputs("take all", "quit", "y")
             room.enter(player)
 
-            assert player.inventory == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert [obj.name for obj in player.inventory] == ["flint", "granite", "quartz", "slate", "limestone"]
+            assert all(obj.state == "carried" for obj in player.inventory)
             assert room.objects == []
 
         def it_handles_unknown_stone_names(room, player, feed_inputs, capsys):
@@ -71,6 +80,37 @@ def describe_room_16():
             output = capsys.readouterr().out
             assert "You don't see 'diamond' here." in output
             assert player.inventory == []
+
+        def it_uses_a_stone_in_inventory(room, player, feed_inputs, capsys):
+            feed_inputs("take flint", "use flint", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "You weigh the flint in your hand." in output
+
+        def it_handles_using_an_item_not_in_inventory(room, player, feed_inputs, capsys):
+            feed_inputs("use flint", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "You don't have 'flint' in your inventory." in output
+
+        def it_warns_when_no_stones_remain_on_the_ground(room, player, feed_inputs, capsys):
+            feed_inputs("take all", "take", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "There are no loose stones left on the ground." in output
+            assert len(player.inventory) == 5
+
+        @pytest.mark.parametrize("command", ["grab stone", "get a rock", "pickup flint"])
+        def it_supports_take_aliases_and_generic_stone_words(room, player, feed_inputs, command):
+            feed_inputs(command, "quit", "y")
+            room.enter(player)
+
+            assert len(player.inventory) == 1
+            assert player.inventory[0].name == "flint"
+            assert player.inventory[0].state == "carried"
 
     def describe_switchboard_puzzle():
         @pytest.mark.parametrize(
@@ -146,6 +186,7 @@ def describe_room_16():
             assert result == expected_direction
             assert player.current_room == 16
             assert player.inventory == []
+            assert player.score == 25
 
         def it_kills_the_player_on_the_east_track(room, player, feed_inputs):
             feed_inputs("slide iron 2", "ride damaged")
@@ -193,7 +234,8 @@ def describe_room_16():
 
             output = capsys.readouterr().out
             assert "You hold too long!" in output
-            assert player.inventory == ["flint"]
+            assert [obj.name for obj in player.inventory] == ["flint"]
+            assert player.inventory[0].state == "carried"
             assert result == "quit"
 
         def it_loops_back_when_player_has_no_stones(room, player, feed_inputs, capsys):
@@ -209,8 +251,9 @@ def describe_room_16():
             "command, expected_text",
             [
                 ("look", "abandoned minecart junction"),
-                ("look switchboard", "ONE ITEM ALIGNS ONE PATH"),
+                ("look switchboard", "ONE ARTIFACT ALIGNS ONE PATH"),
                 ("look stones", "throwing-sized stones"),
+                ("look flint", "sharp-edged chunk of dark flint"),
                 ("look gilded cart", "gold-covered minecart"),
                 ("look plain cart", "dirty, sturdy minecart"),
                 ("look heavily damaged cart", "heavily dented minecart"),
@@ -225,6 +268,13 @@ def describe_room_16():
 
             output = capsys.readouterr().out
             assert expected_text in output
+
+        def it_describes_a_stone_in_player_inventory(room, player, feed_inputs, capsys):
+            feed_inputs("take quartz", "look quartz", "quit", "y")
+            room.enter(player)
+
+            output = capsys.readouterr().out
+            assert "cloudy white chunk of quartz" in output
 
     def describe_player_and_utility_commands():
         def it_calls_player_inventory(room, player, feed_inputs):
