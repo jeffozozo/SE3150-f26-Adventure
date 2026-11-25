@@ -86,11 +86,20 @@ def test_down_riddle_wrong_answer():
         assert room.move("down", FakePlayer([])) is None
 
 
-def test_dragon_wakes_after_three_actions():
+def test_look_can_inspect_inventory_item(capsys):
+    room = Room()
+    player = FakePlayer(["key"])
+
+    room.look("key", player)
+
+    assert "key" in capsys.readouterr().out
+
+
+def test_dragon_wakes_after_four_actions():
     room = Room()
     player = FakePlayer(["lamp"])
 
-    with patch("builtins.input", side_effect=["look", "inventory", "hint"]):
+    with patch("builtins.input", side_effect=["look", "inventory", "hint", "look"]):
         result = room.enter(player)
 
     assert result == "quit"

@@ -39,7 +39,7 @@ class Room:
             elif command_base == "use":
                 self.use(other_part, player)
             elif command_base == "look":
-                self.look(other_part)
+                self.look(other_part, player)
             elif command_base in ["get", "take"]:
                 self.get(other_part, player)
             elif command_base in ["drop", "put"]:
@@ -125,7 +125,7 @@ class Room:
         else:
             print("You can't use that.")
 
-    def look(self, target):
+    def look(self, target, player):
         if target in ["", "cave", "room"]:
             self.describe_room()
         elif target == "dragon":
@@ -134,6 +134,8 @@ class Room:
             print("The lamp can illuminate the dark cave.")
         else:
             item = self.get_item_from_object_list(target)
+            if item is None:
+                item = self.get_item_from_inventory(target, player)
             if item is not None:
                 print(item.description)
             else:
