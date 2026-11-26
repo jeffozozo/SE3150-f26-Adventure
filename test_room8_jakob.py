@@ -142,6 +142,18 @@ def test_player_can_drop_the_ember_back_in_the_room():
     assert ember in room.objects
 
 
+def test_player_can_pick_the_ember_up_again_after_dropping_it():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    room.look("ashes", player)
+    room.get("ember", player)
+    room.drop("ember", player)
+    room.get("ember", player)
+
+    assert player.has_item("Ancient Ember")
+
+
 def test_player_can_drop_ember_by_short_name():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
