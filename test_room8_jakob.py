@@ -18,6 +18,12 @@ def test_room_has_a_visible_dying_bonfire():
     assert room.objects[0].visible
 
 
+def test_room_keeps_a_direct_reference_to_the_bonfire():
+    room = Room()
+
+    assert room.bonfire is room.objects[0]
+
+
 def test_all_room_objects_use_custom_object_classes():
     room = Room()
 

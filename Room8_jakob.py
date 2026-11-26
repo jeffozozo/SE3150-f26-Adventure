@@ -25,14 +25,15 @@ class Room:
             "sealed by the dying flame."
         )
         self.exits = ['east', 'up']
+        self.bonfire = Bonfire(
+            "Dying Bonfire",
+            "A small flame struggles to burn among the ashes.",
+            False,
+            "dying",
+            True,
+        )
         self.objects = [
-            Bonfire(
-                "Dying Bonfire",
-                "A small flame struggles to burn among the ashes.",
-                False,
-                "dying",
-                True,
-            ),
+            self.bonfire,
             ShrineObject(
                 "Weathered Tombstone",
                 "Its inscription reads: 'Where the knight's flame symbol rests, "
@@ -189,7 +190,7 @@ class Room:
             if target_name not in bonfire_names:
                 return "That cannot be used there."
 
-        if self.objects[0].state == "lit":
+        if self.bonfire.state == "lit":
             return "The bonfire is already lit."
         if item_name in bonfire_names:
             return "You need an ember to light the bonfire."
@@ -198,7 +199,7 @@ class Room:
         if ember is None:
             return "You need an ember to light the bonfire."
 
-        self.objects[0].use()
+        self.bonfire.use()
         self.description = (
             "You stand in the Forgotten Shrine, a quiet stone chamber beneath "
             "the ruins of a kingdom.\n"
@@ -221,7 +222,7 @@ class Room:
     def move(self, direction):
         direction = {"e": "east", "u": "up"}.get(direction, direction)
         if direction in self.exits:
-            if self.objects[0].state != "lit":
+            if self.bonfire.state != "lit":
                 print("You must light the bonfire before you can leave.")
                 return None
             return direction
