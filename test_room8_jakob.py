@@ -246,6 +246,7 @@ def test_hint_points_to_the_tombstone_and_ember():
 
     assert "tombstone" in hint
     assert "ember" in hint
+    assert "look at the ashes" in hint
 
 
 def test_help_lists_the_room_commands():

@@ -210,7 +210,10 @@ class Room:
         return "The ember catches. The bonfire is lit."
 
     def hint(self):
-        return "The tombstone mentions an ember. Search the ashes, then light the bonfire to open the exits."
+        return (
+            "The tombstone mentions an ember. Look at the ashes to find it, "
+            "then light the bonfire to open the exits."
+        )
 
     def help_text(self):
         return (
