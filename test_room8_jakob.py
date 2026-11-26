@@ -318,6 +318,17 @@ def test_help_command_shows_help():
     printed.assert_any_call(room.help_text())
 
 
+def test_stats_command_shows_current_room():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch("builtins.input", side_effect=["stats", "quit", "yes"]):
+        with patch("builtins.print") as printed:
+            room.enter(player)
+
+    printed.assert_any_call("Current Room: 8")
+
+
 def test_player_cannot_leave_until_bonfire_is_lit():
     room = Room()
 
