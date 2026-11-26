@@ -154,6 +154,20 @@ def test_player_can_pick_the_ember_up_again_after_dropping_it():
     assert player.has_item("Ancient Ember")
 
 
+def test_inventory_command_shows_the_ember():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch(
+        "builtins.input",
+        side_effect=["look ashes", "get ember", "inventory", "quit", "yes"],
+    ):
+        with patch("builtins.print") as printed:
+            room.enter(player)
+
+    printed.assert_any_call("- Ancient Ember: A small ember hidden among the ashes.")
+
+
 def test_player_can_drop_ember_by_short_name():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
