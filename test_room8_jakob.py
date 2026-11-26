@@ -288,6 +288,17 @@ def test_enter_sets_room_number_and_returns_selected_exit():
     assert next_direction == "east"
 
 
+def test_move_command_works_as_an_alias_for_go():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+    room.bonfire.use()
+
+    with patch("builtins.input", return_value="move east"):
+        next_direction = room.enter(player)
+
+    assert next_direction == "east"
+
+
 def test_enter_does_not_allow_exit_until_player_solves_puzzle():
     room = Room()
     player = Player("Tester", 100, "healthy", 0)
