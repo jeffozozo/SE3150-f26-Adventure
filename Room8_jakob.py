@@ -8,6 +8,11 @@ class Bonfire(Object):
         self.description = "A steady bonfire burns brightly among the ashes."
 
 
+class ShrineObject(Object):
+    def use(self):
+        print("Nothing happens.")
+
+
 class Room:
     def __init__(self):
         self.room_num = 8
@@ -28,7 +33,7 @@ class Room:
                 "dying",
                 True,
             ),
-            Object(
+            ShrineObject(
                 "Weathered Tombstone",
                 "Its inscription reads: 'Where the knight's flame symbol rests, "
                 "a hidden ember waits to wake the fire.'",
@@ -36,28 +41,28 @@ class Room:
                 None,
                 True,
             ),
-            Object(
+            ShrineObject(
                 "Broken Knight's Sword",
                 "A faded flame symbol is engraved near the broken blade.",
                 False,
                 "broken",
                 True,
             ),
-            Object(
+            ShrineObject(
                 "Rusty Armor",
                 "The armor belonged to a knight who once guarded the shrine.",
                 False,
                 "rusted",
                 True,
             ),
-            Object(
+            ShrineObject(
                 "Ancient Ashes",
                 "A pile of cold ashes lies beside the bonfire.",
                 False,
                 None,
                 True,
             ),
-            Object(
+            ShrineObject(
                 "Ancient Ember",
                 "A small ember hidden among the ashes.",
                 True,

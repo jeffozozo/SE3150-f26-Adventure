@@ -1,5 +1,6 @@
 from unittest.mock import patch
 
+from object import Object
 from player import Player
 from Room8_jakob import Room
 
@@ -15,6 +16,14 @@ def test_room_has_a_visible_dying_bonfire():
 
     assert room.objects[0].name == "Dying Bonfire"
     assert room.objects[0].visible
+
+
+def test_all_room_objects_use_custom_object_classes():
+    room = Room()
+
+    for obj in room.objects:
+        assert isinstance(obj, Object)
+        assert type(obj) is not Object
 
 
 def test_room_has_a_tombstone_with_a_bonfire_clue():
