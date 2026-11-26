@@ -119,6 +119,16 @@ def test_player_can_get_ember_by_short_name():
     assert player.has_item("Ancient Ember")
 
 
+def test_take_command_works_as_an_alias_for_get():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch("builtins.input", side_effect=["look ashes", "take ember", "quit", "yes"]):
+        room.enter(player)
+
+    assert player.has_item("Ancient Ember")
+
+
 def test_player_can_drop_the_ember_back_in_the_room():
     room = Room()
     player = Player("Tester", 100, "healthy", 8)
