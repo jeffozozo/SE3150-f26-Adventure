@@ -1,6 +1,7 @@
 from object import Object
 from player import Player
 import sys  # For exiting the game
+import random  # For Gustav's random lines
 
 
 # Ingredients for Chef Gustav's sandwich: bread, cheese and tomato.
@@ -95,6 +96,9 @@ class Sandwich(Object):
 
 class Room:
 
+    # The correct sandwich, bottom to top.
+    RECIPE = ["bread", "cheese", "tomato", "pickles", "cheese", "bread"]
+
     def __init__(self):
         self.objects = []
         self.room_num = 9
@@ -136,18 +140,27 @@ class Room:
         self.objects.append(self.note)
         self.objects.append(self.plate)
         
-        #this is how you declare your exits. It doesn't matter what room the attach to, I'll worry about that in the global level. 
+        # The exits from map_class.txt. North is always open.
+        # Up and down are blocked by Chef Gustav until the room is solved.
         self.exits = ["north", "up", "down"]
+
+        # Room state
+        self.solved = False   # True once the correct sandwich is served. Stays True.
+        self.anger = 0        # Goes up on each wrong serve. On the 3rd, Gustav throws a pan.
 
 
 
     def enter(self, player):
         player.current_room = self.room_num
 
-        # step 1 - Print the room description
+        # Print the room description and have Gustav greet the player.
         self.describe_room()
+        if self.solved:
+            print('Gustav: "My friend! Welcome back. The way is open for you."')
+        else:
+            print('Gustav: "Ah! A guest! Finally, someone to finish my masterpiece!"')
 
-        # step 2 - make your own command loop - watch carefully about how to parse commands:
+        # The command loop. It keeps going until the player leaves or quits.
         while True:
             command = input("> ").lower().strip()
             parts = command.split(" ", 1)
@@ -158,14 +171,13 @@ class Room:
             else:
                 other_part = ""
 
-            #Do the command - You should make helper functions for each of these in your room as well.
             if command_base in ["move", "go"]:
                 next = self.move(other_part)
-                if(next != None):
+                if next != None:
                     return next
-            
+
             elif command_base == "use":
-                self.use(other_part,player)
+                self.use(other_part, player)
 
             elif command_base == "look":
                 self.look(other_part, player)
@@ -183,59 +195,173 @@ class Room:
                 self.show_stats(player)
 
             elif command_base == "quit":
-                if(self.quit_game(player) == "quit"):
+                if self.quit_game(player) == "quit":
                     return "quit"
-                
 
             elif command_base in ["help", "?"]:
                 self.show_help()
-            
+
             elif command_base == "hint":
                 self.show_hint()
+
+            # Room 9's own commands
+            elif command_base == "stack":
+                self.stack(other_part, player)
+
+            elif command_base == "serve":
+                self.serve(player)
+
+            elif command_base == "open":
+                self.open(other_part, player)
+
+            elif command_base == "eat":
+                self.eat(other_part, player)
+
+            elif command_base == "talk":
+                self.talk(other_part)
+
             else:
                 self.unknown_command()
 
     # Helper functions
+    # Prints the room description, then any items the player could pick up.
+    # Hidden items (visible = False) are skipped. Things that are part of the
+    # room, like the fridge and plate, are already in the description.
     def describe_room(self):
         print(self.description)
-        if self.objects:
-            for obj in self.objects:
+        for obj in self.objects:
+            if obj.visible and obj.can_be_gotten:
                 print(f"There is a {obj.name} here.")
 
+    # Returns the direction if the player is allowed to leave that way.
+    # Returns None if they can't, so enter() keeps them in the room.
     def move(self, direction):
-        if direction in ["down", "d", "well"]:
-            print("You jump into the well, and your whole body tingles as you slip below the surface of the liquid. > blink <")
+        # North is always open.
+        if direction in ["north", "n"]:
+            print("You head out through the doorway to the north.")
+            return "north"
+
+        # Up and down are blocked by Chef Gustav until the sandwich is served.
+        if direction in ["up", "u", "down", "d"]:
+            if not self.solved:
+                print("Chef Gustav floats in your way.")
+                print('Gustav: "No one leaves my kitchen until the sandwich is perfect!"')
+                return None
+            if direction in ["up", "u"]:
+                print("You climb the stairs. Gustav waves goodbye with a ghostly spatula.")
+                return "up"
+            print("You lift the trapdoor and climb down into the dark.")
             return "down"
-        else:
-            print("You can't go that way.")
-            return None
+
+        print("You can't go that way.")
+        return None
 
     def look(self, target, player):
-        if(target == None or target == "" ):
+        if target == None or target == "":
             self.describe_room()
             return
 
-        if target == "well":
-            print("Upon closer inspection, the liquid is not water -- it's pure magic. It seems the well may be a portal to somewhere.")
+        # Things in the room that aren't objects
+        if target in ["gustav", "chef", "chef gustav", "ghost"]:
+            print("Chef Gustav is a pale, see-through ghost in a tall chef's hat.")
+            print("He hovers between you and the stairs, glaring at the empty plate.")
             return
-        
-        # Check if the object is in the room or in the player's inventory and print it description and status. You can use this code exactly.
-        item = self.get_item_from_inventory(target,player)
+        if target in ["cabinets", "cabinet"]:
+            print("The cabinets are full of dusty pots and pans. Gustav keeps glancing at them.")
+            return
+        if target == "table":
+            print("An old wooden table with a plate and a handwritten note on it.")
+            return
+
+        # Look for the item in the inventory first, then in the room.
+        item = self.get_item_from_inventory(target, player)
         if item == None:
             item = self.get_item_from_object_list(target)
-            if item == None:
-                print("There is nothing like " + target + " to look at.")
-                return
+        if item == None:
+            print("You don't see that here.")
+            return
 
-        if target == item.name.lower().strip():
-            print(item.description) 
-            if(item.state != None): 
-                print(f"The {item.name} is {item.state}")                   
+        print(item.description)
+        if item.state != None:
+            print(f"The {item.name} is {item.state}.")
+        # Looking at the plate also shows what's stacked on it.
+        if item == self.plate:
+            self.plate.use()
+
+    # Puts an ingredient from the player's inventory on the plate.
+    # The ingredient stays in the inventory, so bread and cheese can go on twice.
+    def stack(self, item_name, player):
+        if item_name == "":
+            print("Stack what?")
             return
-            
-            print("looking at", target, "reveals nothing.")
+
+        item = self.get_item_from_inventory(item_name, player)
+        if item == None:
+            print(f"You don't have any {item_name}.")
             return
-    
+
+        # What goes on the plate is the ingredient's short name, so the
+        # plate's list can be compared straight to the RECIPE.
+        if item == self.bread:
+            ingredient = "bread"
+        elif item == self.cheese:
+            ingredient = "cheese"
+        elif item == self.tomato:
+            ingredient = "tomato"
+        elif item == self.jar:
+            if self.jar.state != "open":
+                print("The jar is closed. You can't get the pickles out.")
+                return
+            ingredient = "pickles"
+        else:
+            print(f"Chef Gustav gasps. \"You cannot put a {item.name} in a sandwich!\"")
+            return
+
+        self.plate.stack.append(ingredient)
+        print(f"You put the {ingredient} on the plate.")
+        self.plate.use()
+
+    # Gustav checks the sandwich on the plate against the RECIPE.
+    def serve(self, player):
+        # Once solved, there are no more sandwiches (or points) to earn.
+        if self.solved:
+            print("Gustav is already at peace. He doesn't need another sandwich.")
+            return
+
+        if len(self.plate.stack) == 0:
+            print("There's nothing to serve. The plate is empty.")
+            return
+
+        # The right sandwich: the room is solved and the exits open.
+        if self.plate.stack == self.RECIPE:
+            self.solved = True
+            self.plate.stack = []
+            player.score += 25
+            sandwich = Sandwich("Sandwich",
+                                "Chef Gustav's masterpiece. Eating it would restore your health.",
+                                True, None, True, player)
+            player.inventory.append(sandwich)
+            print("Chef Gustav takes one ghostly bite and closes his eyes.")
+            print('Gustav: "Magnifique! At last, I can rest... but first, you may pass."')
+            print("He wraps the sandwich in paper and hands it to you. You gain 25 points.")
+            print("Gustav drifts aside. The stairs up and the trapdoor down are open.")
+            return
+
+        # The wrong sandwich: clear the plate and Gustav gets angrier.
+        self.plate.stack = []
+        self.anger += 1
+        print("Gustav stares at the sandwich. It falls apart on the plate.")
+        if self.anger == 1:
+            print('Gustav: "Non, non, NON! That is not my sandwich!"')
+        elif self.anger == 2:
+            print('Gustav: "You insult my memory! Read. The. Recipe."')
+        else:
+            print('Gustav: "ENOUGH!"')
+            print("He grabs a frying pan from the cabinets and flings it at you. CLANG!")
+            print("You lose 5 health.")
+            player.health -= 5
+            self.anger = 0
+
     # you can use this as well. haha get it? use this...
     def use(self, item_name, player):
         item = self.get_item_from_inventory(item_name,player)
@@ -254,8 +380,9 @@ class Room:
     def get(self, item_name, player):
 
         # Check if the player already has the item in their inventory
-        if player.has_item(item_name):
-            print(f"You already have the {item_name}.")
+        held = self.get_item_from_inventory(item_name, player)
+        if held != None:
+            print(f"You already have the {held.name}.")
             return
         
         item = self.get_item_from_object_list(item_name)
@@ -297,23 +424,82 @@ class Room:
             return "quit"
 
     def show_help(self):
-        print("Available commands: move, go, look, get, take, drop, inventory, stats, quit, help")
+        print("Available commands:")
+        print("  go / move <direction>, look [item], get / take <item>, drop <item>, use <item>")
+        print("  open <item>, stack <ingredient>, serve, eat <item>, talk gustav")
+        print("  inventory, stats, hint, help / ?, quit")
+        if self.solved:
+            print("Exits: north, up, down")
+        else:
+            print("Exits: north (Gustav is blocking up and down)")
 
+    # The hint changes depending on how far the player has gotten.
     def show_hint(self):
-        print("This is the starting room. You probably ought to get the lamp and go down the well.")
+        print('Gustav whispers: "The recipe never lies..."')
+        if self.fridge.state == "closed":
+            print("Maybe there's something useful in the fridge.")
+        elif self.jar.state == "closed":
+            print("Those pickles won't get out of that jar by themselves.")
+        else:
+            print("Read the recipe, take the ingredients, stack them in order, then serve.")
+
+    # "open fridge" and "open jar" work the same as using them.
+    def open(self, item_name, player):
+        item = self.get_item_from_inventory(item_name, player)
+        if item == None:
+            item = self.get_item_from_object_list(item_name)
+        if item == self.fridge or item == self.jar:
+            item.use()
+        else:
+            print("You can't open that.")
+
+    # "eat sandwich" works the same as "use sandwich".
+    def eat(self, item_name, player):
+        item = self.get_item_from_inventory(item_name, player)
+        if item != None and isinstance(item, Sandwich):
+            item.use()
+        elif item != None:
+            print('Gustav: "Do not eat the ingredients! They are for the sandwich!"')
+        else:
+            print("You don't have anything like that to eat.")
+
+    # Gustav says something random.
+    def talk(self, target):
+        if target not in ["gustav", "chef", "chef gustav", "ghost"]:
+            print("There's no one here by that name. Just Gustav.")
+            return
+        lines = [
+            'Gustav: "I died the night before the grand opening. The sandwich was never finished."',
+            'Gustav: "Bread on the bottom. Always bread on the bottom. Even a ghost knows this."',
+            'Gustav: "I have haunted this kitchen for 87 years. The cheese is from year 3."',
+            'Gustav: "Cooking is love. Also, if you get it wrong, I throw pans."',
+        ]
+        print(random.choice(lines))
 
     def unknown_command(self):
         print("You can't do that here. Try something else or type 'help' for options or 'hint' for a clue.")
 
+    # Returns True if what the player typed matches this item's name.
+    # The player can type the full name ("loaf of bread") or any one word
+    # of it ("bread", "loaf"). The word "of" doesn't count on its own.
+    def name_matches(self, item, typed):
+        typed = typed.lower().strip()
+        full_name = item.name.lower()
+        words = full_name.split()
+        if typed == full_name:
+            return True
+        return typed in words and typed != "of"
+
     def get_item_from_inventory(self, item_name, player):
         for item in player.inventory:
-            if item.name.lower() == item_name.lower():  
-                return item
-        return None    
-    
-    def get_item_from_object_list(self, item_name):
-        for item in self.objects:
-            if item.name.lower() == item_name.lower():
+            if self.name_matches(item, item_name):
                 return item
         return None
-    
+
+    # Only finds items the player can see. Hidden items (like the
+    # cheese before the fridge is opened) are skipped.
+    def get_item_from_object_list(self, item_name):
+        for item in self.objects:
+            if item.visible and self.name_matches(item, item_name):
+                return item
+        return None
