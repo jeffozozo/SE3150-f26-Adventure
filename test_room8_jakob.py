@@ -296,6 +296,17 @@ def test_help_lists_the_room_commands():
     assert "use" in help_text
 
 
+def test_question_mark_command_shows_help():
+    room = Room()
+    player = Player("Tester", 100, "healthy", 8)
+
+    with patch("builtins.input", side_effect=["?", "quit", "yes"]):
+        with patch("builtins.print") as printed:
+            room.enter(player)
+
+    printed.assert_any_call(room.help_text())
+
+
 def test_player_cannot_leave_until_bonfire_is_lit():
     room = Room()
 
