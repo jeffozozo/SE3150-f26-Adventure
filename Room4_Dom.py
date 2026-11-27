@@ -49,10 +49,10 @@ SHERLOCK_LINES = {
     ],
     "correct": [
         "Sherlock: \"Elementary. I have failed that exact wall four hundred times.\"",
-        "Sherlock: \"You make it look easy. I hate you. Please teach me.\"",
+        "Sherlock: \"You make it look easy. What agency do you work for!? \"",
     ],
     "wrong": [
-        "Sherlock: \"I deduced it was a triangle. It was a TRAPEZOID. Nothing is real.\"",
+        "Sherlock: \"I deduced it was a triangle. Nothing is real.\"",
         "Sherlock: \"Welcome to my world. It is wet here.\"",
     ],
     "close": [
@@ -67,25 +67,22 @@ SHERLOCK_LINES = {
     ],
     "random": [
         "Sherlock: \"I used to solve murders. Now I can't solve a hole.\"",
-        "Sherlock: \"Do you ever think the wall is the one moving... or are WE?\"",
         "Sherlock: \"Mrs. Hudson thinks I'm on holiday.\"",
         "Sherlock: \"I have deduced that the pool is 80% my tears.\"",
-        "Sherlock: \"Chip Rumble has too many teeth. I've counted. It's 34.\"",
     ],
 }
 
 
 class MagnifyingGlass(Object):
     # state holds the index of the wall currently coming (0-2),
-    # None when no round is running, or len(WALLS) after the room is beaten.
     def __init__(self, name, description, can_be_gotten, state, visible):
         super().__init__(name, description, can_be_gotten, state, visible)
 
     def use(self):
         if self.state == 0:
-            print("Sherlock squints through the glass: \"This hole looks very flamingo-esque.\"")
+            print("Sherlock squints through the glass: \"This hole looks some kind of bird.\"")
         elif self.state == 1:
-            print("Sherlock squints through the glass: \"This hole looks like an hourglass.\"")
+            print("Sherlock squints through the glass: \"This hole makes you want to check the time\"")
         elif self.state == 2:
             print("Sherlock squints through the glass: \"This last hole looks like an S. Hiss.\"")
         elif self.state == len(WALLS):
@@ -163,7 +160,7 @@ class Room:
 
     def handle_command(self, command, target, player):
         """Runs one command. Returns a direction or "quit" to leave the room, otherwise None."""
-        was_active = self.round_active
+        previous_round_started = self.round_active
         uses_step = True
 
         if command in ["go", "move"]:
@@ -202,7 +199,7 @@ class Room:
             print("Command unavailable.")
 
         # Every non-pose command during a round lets the wall move closer.
-        if was_active and self.round_active and uses_step:
+        if previous_round_started and self.round_active and uses_step:
             if self.tick(player):
                 return "down"
         return None
@@ -251,7 +248,7 @@ class Room:
                 self.draw_wall()
             return None
 
-        print("SPLAT. You did not fit.")
+        print("SPLAT. You did not fit. What a chump")
         self.sherlock("wrong")
         self.fail(player)
         return "down"
@@ -326,7 +323,7 @@ class Room:
             print("OFFICIAL POSES: " + ", ".join(VALID_POSES))
         elif target == "wall" and self.round_active:
             self.draw_wall()
-        elif target in ["sherlock", "holmes"]:
+        elif target in ["sherlock", "holmes", "sherlock holmes"]:
             print("The world's greatest detective, soaking wet and staring at his own reflection.")
         elif target in ["host", "chip", "chip rumble"]:
             print("Chip Rumble. Spray tan. Sparkly jacket. Thirty-four teeth.")
@@ -371,7 +368,7 @@ class Room:
         return item
 
     def talk(self, target):
-        if target in ["sherlock", "holmes"]:
+        if target in ["sherlock", "holmes", "sherlock holmes"]:
             self.sherlock("random")
         elif target in ["host", "chip", "chip rumble"]:
             self.start_round()
